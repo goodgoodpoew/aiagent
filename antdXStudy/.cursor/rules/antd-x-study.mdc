@@ -1,0 +1,30 @@
+---
+description: Ant Design X 练习项目的开发与页面约定
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Ant Design X 练习项目规范
+
+## 新增示例页
+
+1. 在 `src/pages/` 创建页面组件（默认导出）
+2. 在 `.umirc.ts` 的 `routes` 中添加 `{ path, component, title }`
+3. 在 `src/layouts/index.tsx` 的 `menuItems` 中添加对应菜单项
+
+## 页面结构
+
+- 外层容器：`style={{ maxWidth: 800, margin: '0 auto' }}`
+- 内容用 `Card` 包裹，标题与现有页面风格一致
+- 从 `@ant-design/x` 导入组件，从 `antd` 导入基础 UI
+
+## Chat 相关
+
+- 完整对话示例参考 `src/pages/chat.tsx`
+- 使用 `useXAgent` + `useXChat` 管理消息与请求
+- 模拟流式输出：在 `request` 中循环调用 `onUpdate`
+
+## 注释与文案
+
+- 代码注释、UI 文案使用简体中文
+- 提交信息使用简体中文

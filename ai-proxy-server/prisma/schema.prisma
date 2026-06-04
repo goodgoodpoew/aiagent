@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  username  String   @unique
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sessions     Session[]
+  sessionFiles SessionFile[]
+  messageFiles MessageFile[]
+
+  @@map("users")
+}
+
+model Session {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  title       String?
+  titleStatus String   @default("manual") @map("title_status")
+  version     Int      @default(1)
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages     Message[]
+  files        SessionFile[]
+  messageFiles MessageFile[]
+  chatRequests ChatRequest[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([isDeleted])
+  @@map("sessions")
+}
+
+model ChatRequest {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  requestId          String   @map("request_id")
+  sessionId          String   @map("session_id") @db.Uuid
+  userMessageId      String   @map("user_message_id") @db.Uuid
+  assistantMessageId String   @map("assistant_message_id") @db.Uuid
+  status             String
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, requestId])
+  @@index([sessionId, createdAt])
+  @@map("chat_requests")
+}
+
+model ModelProvider {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String   @unique
+  displayName   String   @map("display_name")
+  providerType  String   @default("system") @map("provider_type")
+  iconUrl       String?  @map("icon_url")
+  baseUrl       String   @map("base_url")
+  adapterType   String   @default("openai-compatible") @map("adapter_type")
+  enabled       Boolean  @default(true)
+  systemBuiltIn Boolean  @default(false) @map("system_built_in")
+  configSchema  Json?    @map("config_schema") @db.JsonB
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  credentials ModelProviderCredential[]
+  models      ProviderModel[]
+
+  @@map("model_providers")
+}
+
+model ModelProviderCredential {
+  id                  String    @id @default(uuid()) @db.Uuid
+  providerId          String    @map("provider_id") @db.Uuid
+  name                String
+  encryptedConfig     String    @map("encrypted_config") @db.Text
+  isDefault           Boolean   @default(false) @map("is_default")
+  enabled             Boolean   @default(true)
+  lastValidatedAt     DateTime? @map("last_validated_at")
+  lastValidationError String?   @map("last_validation_error") @db.Text
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  provider ModelProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, name])
+  @@index([providerId, isDefault])
+  @@map("model_provider_credentials")
+}
+
+model ProviderModel {
+  id                String   @id @default(uuid()) @db.Uuid
+  providerId        String   @map("provider_id") @db.Uuid
+  modelType         String   @default("llm") @map("model_type")
+  name              String
+  displayName       String   @map("display_name")
+  features          Json?    @db.JsonB
+  contextSize       Int?     @map("context_size")
+  maxOutput         Int?     @map("max_output")
+  defaultParameters Json?    @map("default_parameters") @db.JsonB
+  pricing           Json?    @db.JsonB
+  deprecated        Boolean  @default(false)
+  isDefault         Boolean  @default(false) @map("is_default")
+  enabled           Boolean  @default(true)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  provider ModelProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, modelType, name])
+  @@index([providerId, modelType, isDefault])
+  @@map("provider_models")
+}
+
+model Message {
+  id        String   @id @default(uuid()) @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  role      String
+  content   String   @db.Text
+  metadata  Json?    @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  files   MessageFile[]
+
+  @@index([sessionId, createdAt])
+  @@map("messages")
+}
+
+/// 上传文件记录（避免与 DOM File 类型冲突，表名仍为 files）
+model UploadedFile {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String?   @map("user_id") @db.Uuid
+  name        String
+  type        String
+  extension   String?
+  size        BigInt    @db.BigInt
+  hash        String?
+  storageKey  String    @map("storage_key")
+  url         String?
+  status      String    @default("uploaded")
+  purpose     String    @default("chat")
+  textContent String?   @map("text_content") @db.Text
+  metadata    Json?     @db.JsonB
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sessionLinks SessionFile[]
+  messageLinks MessageFile[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([hash])
+  @@index([status])
+  @@map("files")
+}
+
+/// 会话与文件的归档关联：只说明文件在该会话出现过，不代表每轮都进入模型上下文
+model SessionFile {
+  id        String   @id @default(uuid()) @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  file    UploadedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, fileId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([fileId])
+  @@map("session_files")
+}
+
+/// 消息与文件的事实关联：决定这条消息发送时模型实际可以读取哪些文件
+model MessageFile {
+  id        String   @id @default(uuid()) @db.Uuid
+  messageId String   @map("message_id") @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  session Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  file    UploadedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, fileId])
+  @@index([sessionId, createdAt])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([fileId])
+  @@map("message_files")
+}

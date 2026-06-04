@@ -1,0 +1,31 @@
+{
+  "name": "antd-x-study",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "max dev",
+    "build": "max build",
+    "preview": "max preview",
+    "setup": "max setup",
+    "prepare": "max setup"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.2.3",
+    "@ant-design/x": "^2.7.0",
+    "@ant-design/x-card": "^2.7.0",
+    "@ant-design/x-markdown": "^2.7.0",
+    "@ant-design/x-sdk": "^2.7.0",
+    "@reduxjs/toolkit": "^2.12.0",
+    "@umijs/max": "^4.6.54",
+    "antd": "^6.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.1.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@umijs/plugins": "^4.6.55",
+    "typescript": "^5.4.0"
+  }
+}
