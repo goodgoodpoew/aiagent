@@ -8,3 +8,4 @@ src/.umi
 .cache
 *.log
 .DS_Store
+.pnpm-store
