@@ -7,6 +7,8 @@ import { MessageService } from '../message/message.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SessionEventService } from '../session/session-event.service';
 import { SessionService } from '../session/session.service';
+import type { UserMessagePart } from '../streaming/dto/chat-stream-v2.dto';
+import type { MessagePart } from '../streaming/protocol/message-part.types';
 
 export interface PrepareSendMessageParams {
   userId: string;
@@ -14,6 +16,7 @@ export interface PrepareSendMessageParams {
   sessionId?: string;
   requestId?: string;
   clientMessageId?: string;
+  inputParts?: UserMessagePart[];
   fileIds?: string[];
   autoGenerateSessionName: boolean;
   platform: string;
@@ -28,6 +31,7 @@ export interface PreparedSendMessage {
   assistantMessageId: string;
   requestId: string;
   clientMessageId?: string;
+  userMessageParts?: MessagePart[];
   session?: {
     title: string | null;
     titleStatus: string;
@@ -74,6 +78,7 @@ export class ConversationApplicationService {
         assistantMessageId: existingRequest.assistantMessageId,
         requestId,
         clientMessageId: params.clientMessageId,
+        userMessageParts: undefined,
         isNewSession: false,
         isReplay: true,
         requestStatus: existingRequest.status,
@@ -91,11 +96,15 @@ export class ConversationApplicationService {
 
     const userMessageId = crypto.randomUUID();
     const assistantMessageId = crypto.randomUUID();
+    const userMessageParts = params.inputParts?.length
+      ? this.createUserMessageParts(userMessageId, params.inputParts)
+      : undefined;
 
     const { messages: llmMessages } = await this.chatContext.prepareContext({
       sessionId: session.id,
       userId: params.userId,
       query: params.query,
+      parts: userMessageParts,
       fileIds: params.fileIds,
       userMessageId,
       requestId,
@@ -180,6 +189,7 @@ export class ConversationApplicationService {
       assistantMessageId,
       requestId,
       clientMessageId: params.clientMessageId,
+      userMessageParts,
       session: {
         title: session.title,
         titleStatus: session.titleStatus,
@@ -220,5 +230,40 @@ export class ConversationApplicationService {
       }
       throw err;
     }
+  }
+
+  private createUserMessageParts(messageId: string, parts: UserMessagePart[]): MessagePart[] {
+    return parts
+      .map((part, index): MessagePart | undefined => {
+        const id = `${messageId}:${part.type}:${index}`;
+        if (part.type === 'text') {
+          return {
+            id,
+            type: 'text',
+            text: part.text,
+            status: 'done',
+          };
+        }
+        if (part.type === 'file' || part.type === 'image') {
+          return {
+            id,
+            type: 'file',
+            fileId: part.fileId,
+            name: part.type === 'file' ? part.name ?? part.fileId : part.fileId,
+            mimeType: part.mimeType,
+          };
+        }
+        if (part.type === 'resource') {
+          return {
+            id,
+            type: 'reference',
+            title: part.title ?? part.uri,
+            uri: part.uri,
+            source: part.source === 'local' ? 'file' : part.source,
+          };
+        }
+        return undefined;
+      })
+      .filter((part): part is MessagePart => Boolean(part));
   }
 }

@@ -9,7 +9,7 @@ import {
   getMessageList,
   createStreamChatProvider,
   toChatBubbleItems,
-} from '@/service/chat-shared';
+} from './chat-shared';
 import XMarkdown from '@ant-design/x-markdown';
 
 export default function ChatPage() {
@@ -67,7 +67,7 @@ export default function ChatPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
-      <Card title="Chat 聊天 - useXChat (X SDK)" style={{ marginBottom: 24 }}>
+      <Card title="Chat 聊天 - useXChat (legacy v1 示例)" style={{ marginBottom: 24 }}>
         <div style={{ minHeight: 400, maxHeight: '80vh', overflowY: 'auto', marginBottom: 16 }}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', color: '#999', paddingTop: 160 }}>

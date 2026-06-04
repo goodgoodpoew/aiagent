@@ -18,8 +18,8 @@ export default defineConfig({
       path: '/',
       title: '示例',
       routes: [
-        { path: '', redirect: '/chat' },
-        { path: '/chat', component: '@/pages/example/chat', title: 'Chat 聊天' },
+        { path: '', redirect: '/ai/chat' },
+        { path: '/chat', component: '@/pages/example/chat', title: 'Chat 聊天 legacy v1 示例' },
         { path: '/bubble', component: '@/pages/example/bubble', title: 'Bubble 气泡' },
         { path: '/welcome', component: '@/pages/example/welcome', title: 'Welcome 欢迎' },
         { path: '/prompt', component: '@/pages/example/prompt', title: 'Prompt 提示' },

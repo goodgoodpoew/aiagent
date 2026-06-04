@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { ChatRequestDto, AiPlatform } from './dto/chat.dto';
 import { ModelProviderRegistryService } from '../model-provider/model-provider-registry.service';
+import type { ResolvedChatProvider } from '../model-provider/model-provider.types';
 import { firstValueFrom } from 'rxjs';
 import { sanitizeStreamError } from './errors/stream-error.util';
 import { StreamProxyError } from './errors/stream-proxy.error';
@@ -48,11 +49,56 @@ export class AiProxyService {
     return resolved;
   }
 
+  private buildChatCompletionPayload(
+    resolved: ResolvedChatProvider,
+    dto: ChatRequestDto,
+    stream: boolean,
+  ) {
+    const payload: Record<string, unknown> = {
+      model: resolved.model,
+      messages: dto.messages,
+      temperature: dto.temperature ?? 0.7,
+      max_tokens: dto.max_tokens ?? 4096,
+      stream,
+    };
+
+    // 只在明确支持请求侧 effort 参数的 provider 上传递 reasoning 配置；
+    // DeepSeek 等 provider 即使不需要请求参数，也仍可由 adapter 识别返回的 reasoning_content。
+    if (dto.reasoning?.enabled && dto.reasoning.effort && resolved.reasoning?.supported) {
+      payload[resolved.reasoning.requestEffortParam ?? 'reasoning_effort'] = dto.reasoning.effort;
+    }
+
+    if (dto.tools?.length) {
+      // OpenAI-compatible provider 使用 function tools；schema 只来自后端注册表解析结果。
+      payload.tools = dto.tools.map((tool) => ({
+        type: 'function',
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.inputSchema,
+        },
+      }));
+      if (dto.toolChoice === 'none') {
+        payload.tool_choice = 'none';
+      } else if (dto.toolChoice && typeof dto.toolChoice === 'object') {
+        payload.tool_choice = {
+          type: 'function',
+          function: { name: dto.toolChoice.name },
+        };
+      } else {
+        payload.tool_choice = 'auto';
+      }
+    }
+
+    return payload;
+  }
+
   /**
    * 非流式聊天请求代理
    */
   async proxyChat(dto: ChatRequestDto) {
-    const { baseUrl, apiKey, provider, model } = await this.getProviderConfig(dto);
+    const resolved = await this.getProviderConfig(dto);
+    const { baseUrl, apiKey, provider, model } = resolved;
 
     this.logger.log(`Proxying chat request → ${provider}/${model}`);
 
@@ -60,13 +106,7 @@ export class AiProxyService {
       const response = await firstValueFrom(
         this.httpService.post(
           `${baseUrl}/chat/completions`,
-          {
-            model,
-            messages: dto.messages,
-            temperature: dto.temperature ?? 0.7,
-            max_tokens: dto.max_tokens ?? 4096,
-            stream: false,
-          },
+          this.buildChatCompletionPayload(resolved, dto, false),
           {
             headers: {
               'Content-Type': 'application/json',
@@ -111,7 +151,8 @@ export class AiProxyService {
    * 流式聊天请求代理 - 返回 ReadableStream 用于 SSE
    */
   async proxyChatStream(dto: ChatRequestDto) {
-    const { baseUrl, apiKey, provider, model } = await this.getProviderConfig(dto);
+    const resolved = await this.getProviderConfig(dto);
+    const { baseUrl, apiKey, provider, model } = resolved;
 
     this.logger.log(`Proxying stream chat → ${provider}/${model}`);
 
@@ -119,13 +160,7 @@ export class AiProxyService {
       const axiosResponse = await firstValueFrom(
         this.httpService.post(
           `${baseUrl}/chat/completions`,
-          {
-            model,
-            messages: dto.messages,
-            temperature: dto.temperature ?? 0.7,
-            max_tokens: dto.max_tokens ?? 4096,
-            stream: true,
-          },
+          this.buildChatCompletionPayload(resolved, dto, true),
           {
             headers: {
               'Content-Type': 'application/json',

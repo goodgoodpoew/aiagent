@@ -7,11 +7,14 @@ import { FileService } from '../files/file.service';
 import { ReadableFileContent } from '../files/file-reader.port';
 import { Prisma } from '@prisma/client';
 import { SessionService } from '../session/session.service';
+import { MESSAGE_PROTOCOL_V2 } from '../message/dto/create-message.dto';
+import type { MessagePart } from '@/streaming/protocol/message-part.types';
 
 export interface PrepareContextParams {
   sessionId: string;
   userId: string;
   query: string;
+  parts?: MessagePart[];
   fileIds?: string[];
   userMessageId?: string;
   requestId?: string;
@@ -73,7 +76,7 @@ export class ChatContextService {
     userMessageId: string;
     messages: Array<{ role: string; content: string }>;
   }> {
-    const { sessionId, userId, query, fileIds, requestId, clientMessageId } = params;
+    const { sessionId, userId, query, parts, fileIds, requestId, clientMessageId } = params;
 
     // 1. 读取本轮附件内容并构建上下文；历史会话文件不自动进入本轮模型上下文。
     let attachmentContext = '';
@@ -104,8 +107,10 @@ export class ChatContextService {
       }
     }
 
-    // 2. 构建消息 metadata（附件快照）
-    const metadata: Record<string, unknown> = {};
+    // 2. 构建消息 metadata：content 是文本投影，parts 才是刷新后恢复结构化消息的事实来源。
+    const metadata: Record<string, unknown> = {
+      status: 'done',
+    };
     if (requestId) {
       metadata.requestId = requestId;
     }
@@ -118,6 +123,10 @@ export class ChatContextService {
     if (unavailableAttachments) {
       metadata.unavailableAttachments = unavailableAttachments;
     }
+    if (parts?.length) {
+      metadata.protocol = MESSAGE_PROTOCOL_V2;
+      metadata.parts = parts;
+    }
 
     // 3. 保存用户消息
     const userMessageId = params.userMessageId ?? crypto.randomUUID();
@@ -126,7 +135,7 @@ export class ChatContextService {
       {
         role: 'user',
         content: query,
-        ...(Object.keys(metadata).length ? { metadata } : {}),
+        metadata,
       },
       userMessageId,
     );

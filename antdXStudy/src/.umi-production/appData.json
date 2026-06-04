@@ -55,7 +55,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 4
+        "register": 11
       },
       "enableBy": "register"
     },
@@ -68,7 +68,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 2
       },
       "enableBy": "register"
     },
@@ -146,7 +146,7 @@
       "time": {
         "hooks": {
           "modifyAppData": [
-            20
+            18
           ]
         },
         "register": 14
@@ -182,7 +182,7 @@
             0
           ]
         },
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -229,7 +229,7 @@
             0
           ]
         },
-        "register": 4
+        "register": 6
       },
       "enableBy": "register"
     },
@@ -1081,7 +1081,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -1111,7 +1111,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1124,7 +1124,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 54
+        "register": 50
       },
       "enableBy": "register"
     },
@@ -1137,7 +1137,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 20
+        "register": 23
       },
       "enableBy": "config"
     },
@@ -1206,7 +1206,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 20
+        "register": 26
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/mpa/mpa": {
@@ -1218,7 +1218,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1243,7 +1243,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1256,7 +1256,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1273,7 +1273,7 @@
             1
           ]
         },
-        "register": 0
+        "register": 1
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/polyfill/publicPathPolyfill": {
@@ -1298,7 +1298,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1311,7 +1311,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1337,7 +1337,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1388,7 +1388,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 2
       },
       "enableBy": "config"
     },
@@ -1401,7 +1401,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 3
       },
       "enableBy": "register"
     },
@@ -1427,7 +1427,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 7
       },
       "enableBy": "config"
     },
@@ -1453,7 +1453,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 4
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/monorepo/redirect": {
@@ -1465,7 +1465,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 11
+        "register": 15
       },
       "enableBy": "config"
     },
@@ -1478,7 +1478,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/clickToComponent/clickToComponent": {
@@ -1490,7 +1490,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/legacy/legacy": {
@@ -1502,7 +1502,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1557,7 +1557,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/mako/mako": {
@@ -1569,7 +1569,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -1582,7 +1582,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/hmrGuardian/hmrGuardian": {
@@ -1606,7 +1606,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 14
+        "register": 15
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/forget/forget": {
@@ -1644,7 +1644,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1657,7 +1657,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 19
+        "register": 18
       },
       "enableBy": "register"
     },
@@ -1670,7 +1670,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 17
+        "register": 19
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/commands/help": {
@@ -1682,7 +1682,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 3
       },
       "enableBy": "register"
     },
@@ -1708,7 +1708,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1721,7 +1721,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1747,7 +1747,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1773,7 +1773,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1799,7 +1799,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1877,7 +1877,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1903,7 +1903,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1916,7 +1916,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 13
+        "register": 14
       },
       "enableBy": "register"
     },
@@ -1929,7 +1929,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1942,7 +1942,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1955,7 +1955,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -1970,7 +1970,7 @@
       },
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       }
     },
     "./node_modules/.pnpm/@umijs+plugins@4.6.54_@babel+core@7.23.6_@types+react-dom@18.3.7_@types+react@18.3.28___c1b236db9e8261005fc23aa43a84ff55/node_modules/@umijs/plugins/dist/antd": {
@@ -1983,7 +1983,7 @@
       "time": {
         "hooks": {
           "modifyConfig": [
-            2
+            3
           ],
           "modifyAppData": [
             0
@@ -1992,7 +1992,7 @@
             0
           ]
         },
-        "register": 3
+        "register": 4
       }
     },
     "./node_modules/.pnpm/@umijs+plugins@4.6.54_@babel+core@7.23.6_@types+react-dom@18.3.7_@types+react@18.3.28___c1b236db9e8261005fc23aa43a84ff55/node_modules/@umijs/plugins/dist/dva": {
@@ -2004,7 +2004,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 56
+        "register": 66
       },
       "enableBy": "config"
     },
@@ -2017,7 +2017,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -2032,7 +2032,7 @@
       },
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 3
       },
       "enableBy": "config"
     },
@@ -2058,7 +2058,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 2
       },
       "enableBy": "config"
     },
@@ -2134,7 +2134,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -2147,7 +2147,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -2186,7 +2186,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -2203,7 +2203,7 @@
             0
           ]
         },
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -2220,7 +2220,7 @@
             0
           ]
         },
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -2282,12 +2282,12 @@
         "routes": [
           {
             "path": "",
-            "redirect": "/chat"
+            "redirect": "/ai/chat"
           },
           {
             "path": "/chat",
             "component": "@/pages/example/chat",
-            "title": "Chat 聊天"
+            "title": "Chat 聊天 legacy v1 示例"
           },
           {
             "path": "/bubble",
@@ -2420,12 +2420,12 @@
         "routes": [
           {
             "path": "",
-            "redirect": "/chat"
+            "redirect": "/ai/chat"
           },
           {
             "path": "/chat",
             "component": "@/pages/example/chat",
-            "title": "Chat 聊天"
+            "title": "Chat 聊天 legacy v1 示例"
           },
           {
             "path": "/bubble",
@@ -3433,19 +3433,19 @@
     },
     "2": {
       "path": "",
-      "redirect": "/chat",
+      "redirect": "/ai/chat",
       "parentId": "1",
       "id": "2",
       "absPath": "/"
     },
     "3": {
       "path": "/chat",
-      "title": "Chat 聊天",
+      "title": "Chat 聊天 legacy v1 示例",
       "file": "@/pages/example/chat.tsx",
       "parentId": "1",
       "id": "3",
       "absPath": "/chat",
-      "__content": "import { Bubble, Sender } from '@ant-design/x';\nimport { useXChat } from '@ant-design/x-sdk';\nimport { Card } from 'antd';\nimport { useEffect, useMemo, useState } from 'react';\nimport {\n  CHAT_STREAM_API,\n  createChartBubbleRole,\n  createChatInput,\n  getMessageList,\n  createStreamChatProvider,\n  toChatBubbleItems,\n} from '@/service/chat-shared';\nimport XMarkdown from '@ant-design/x-markdown';\n\nexport default function ChatPage() {\n  const [input, setInput] = useState('');\n\n  const provider = useMemo(\n    () => createStreamChatProvider(CHAT_STREAM_API),\n    [],\n  );\n\n  const { onRequest, setMessages, messages, isRequesting } = useXChat({\n    provider,\n  });\n\n  const role = useMemo(() => createChartBubbleRole((text) => {\n    return <XMarkdown>{text}</XMarkdown>;\n  }), []);\n  useEffect(() => {\n    getMessageList().then((res) => {\n      const msList = (res || [])?.map((item: any) => {\n        let message = item;\n        if (item.role === \"assistant\") {\n          const isFailed = item.metadata?.status === 'failed';\n          message = {\n            choices: [\n              {\n                message: {\n                  content: item.content,\n                  role: \"assistant\",\n                },\n                sessionId: item.sessionId,\n              },\n            ],\n            status: isFailed ? 'error' : 'done',\n            errorCode: isFailed ? item.metadata?.code : undefined,\n          };\n        }\n        if (item.role === \"user\") {\n          message = {\n            ...item,\n            query: item.content,\n            stream: false,\n            status: \"done\",\n          };\n        }\n        return {\n          id: item.id,\n          message: message,\n          type: \"done\"\n        }\n      });\n      setMessages(msList);\n    });\n  }, [setMessages]);\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"Chat 聊天 - useXChat (X SDK)\" style={{ marginBottom: 24 }}>\n        <div style={{ minHeight: 400, maxHeight: '80vh', overflowY: 'auto', marginBottom: 16 }}>\n          {messages.length === 0 && (\n            <div style={{ textAlign: 'center', color: '#999', paddingTop: 160 }}>\n              在下方输入消息开始对话\n            </div>\n          )}\n          <Bubble.List\n            role={role}\n            items={toChatBubbleItems(messages)}\n          />\n        </div>\n        <Sender\n          loading={isRequesting}\n          value={input}\n          onChange={setInput}\n          onSubmit={(val) => {\n            onRequest(createChatInput(val));\n            setInput('');\n          }}\n        />\n      </Card>\n    </div>\n  );\n}\n",
+      "__content": "import { Bubble, Sender } from '@ant-design/x';\nimport { useXChat } from '@ant-design/x-sdk';\nimport { Card } from 'antd';\nimport { useEffect, useMemo, useState } from 'react';\nimport {\n  CHAT_STREAM_API,\n  createChartBubbleRole,\n  createChatInput,\n  getMessageList,\n  createStreamChatProvider,\n  toChatBubbleItems,\n} from './chat-shared';\nimport XMarkdown from '@ant-design/x-markdown';\n\nexport default function ChatPage() {\n  const [input, setInput] = useState('');\n\n  const provider = useMemo(\n    () => createStreamChatProvider(CHAT_STREAM_API),\n    [],\n  );\n\n  const { onRequest, setMessages, messages, isRequesting } = useXChat({\n    provider,\n  });\n\n  const role = useMemo(() => createChartBubbleRole((text) => {\n    return <XMarkdown>{text}</XMarkdown>;\n  }), []);\n  useEffect(() => {\n    getMessageList().then((res) => {\n      const msList = (res || [])?.map((item: any) => {\n        let message = item;\n        if (item.role === \"assistant\") {\n          const isFailed = item.metadata?.status === 'failed';\n          message = {\n            choices: [\n              {\n                message: {\n                  content: item.content,\n                  role: \"assistant\",\n                },\n                sessionId: item.sessionId,\n              },\n            ],\n            status: isFailed ? 'error' : 'done',\n            errorCode: isFailed ? item.metadata?.code : undefined,\n          };\n        }\n        if (item.role === \"user\") {\n          message = {\n            ...item,\n            query: item.content,\n            stream: false,\n            status: \"done\",\n          };\n        }\n        return {\n          id: item.id,\n          message: message,\n          type: \"done\"\n        }\n      });\n      setMessages(msList);\n    });\n  }, [setMessages]);\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"Chat 聊天 - useXChat (legacy v1 示例)\" style={{ marginBottom: 24 }}>\n        <div style={{ minHeight: 400, maxHeight: '80vh', overflowY: 'auto', marginBottom: 16 }}>\n          {messages.length === 0 && (\n            <div style={{ textAlign: 'center', color: '#999', paddingTop: 160 }}>\n              在下方输入消息开始对话\n            </div>\n          )}\n          <Bubble.List\n            role={role}\n            items={toChatBubbleItems(messages)}\n          />\n        </div>\n        <Sender\n          loading={isRequesting}\n          value={input}\n          onChange={setInput}\n          onSubmit={(val) => {\n            onRequest(createChatInput(val));\n            setInput('');\n          }}\n        />\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/chat.tsx"
     },
@@ -3533,7 +3533,7 @@
       "parentId": "1",
       "id": "11",
       "absPath": "/sdk",
-      "__content": "import { Bubble, Sender } from '@ant-design/x';\nimport { useXChat, XRequest, type XRequestOptions } from '@ant-design/x-sdk';\nimport { Card } from 'antd';\nimport { useMemo, useState } from 'react';\nimport {\n  type ChatInput,\n  type ChatOutput,\n  createChartBubbleRole,\n  createChatInput,\n  StreamChatProvider,\n  toChatBubbleItems,\n} from '@/service/chat-shared';\nimport XMarkdown from '@ant-design/x-markdown';\n\n/** 模拟流式 SSE，无需真实 API Key */\nfunction createMockFetch() {\n  return async (\n    _url: Parameters<typeof fetch>[0],\n    options: XRequestOptions<ChatInput, ChatOutput>,\n  ) => {\n    const params = (options.params || {}) as ChatInput;\n    const query = params.query || '';\n    const reply = `收到你的消息：「${query}」。这是 @ant-design/x-sdk 的 useXChat + StreamChatProvider 模拟流式回复。`;\n\n    const encoder = new TextEncoder();\n    let index = 0;\n\n    const stream = new ReadableStream<Uint8Array>({\n      pull(controller) {\n        if (index >= reply.length) {\n          controller.close();\n          return;\n        }\n        const slice = reply.slice(0, index + 2);\n        index += 2;\n        const payload: ChatOutput = {\n          choices: [{ message: { content: slice, role: 'assistant' } }],\n        };\n        controller.enqueue(\n          encoder.encode(`data: ${JSON.stringify(payload)}\\n\\n`),\n        );\n      },\n    });\n\n    return new Response(stream, {\n      headers: { 'Content-Type': 'text/event-stream; charset=utf-8' },\n    });\n  };\n}\n\nexport default function SdkPage() {\n  const [input, setInput] = useState('');\n\n  const provider = useMemo(\n    () =>\n      new StreamChatProvider({\n        request: XRequest<ChatInput, ChatOutput>('/mock-chat', {\n          manual: true,\n          fetch: createMockFetch(),\n        }),\n      }),\n    [],\n  );\n\n  const { onRequest, messages, isRequesting } = useXChat({\n    provider,\n  });\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"X SDK - useXChat 数据流\" style={{ marginBottom: 24 }}>\n        <div style={{ minHeight: 360, marginBottom: 16 }}>\n          {messages.length === 0 && (\n            <div style={{ textAlign: 'center', color: '#999', paddingTop: 140 }}>\n              使用 @ant-design/x-sdk 管理对话数据，在下方输入消息开始\n            </div>\n          )}\n          <Bubble.List\n            role={createChartBubbleRole((text) => {\n              return <XMarkdown>{text}</XMarkdown>;\n            })}\n            items={toChatBubbleItems(messages)}\n          />\n        </div>\n        <Sender\n          loading={isRequesting}\n          value={input}\n          onChange={setInput}\n          onSubmit={(val) => {\n            onRequest(createChatInput(val));\n            setInput('');\n          }}\n        />\n      </Card>\n    </div>\n  );\n}\n",
+      "__content": "import { Bubble, Sender } from '@ant-design/x';\nimport { useXChat, XRequest, type XRequestOptions } from '@ant-design/x-sdk';\nimport { Card } from 'antd';\nimport { useMemo, useState } from 'react';\nimport {\n  type ChatInput,\n  type ChatOutput,\n  createChartBubbleRole,\n  createChatInput,\n  StreamChatProvider,\n  toChatBubbleItems,\n} from './chat-shared';\nimport XMarkdown from '@ant-design/x-markdown';\n\n/** legacy v1 模拟流式 SSE，无需真实 API Key */\nfunction createMockFetch() {\n  return async (\n    _url: Parameters<typeof fetch>[0],\n    options: XRequestOptions<ChatInput, ChatOutput>,\n  ) => {\n    const params = (options.params || {}) as ChatInput;\n    const query = params.query || '';\n    const reply = `收到你的消息：「${query}」。这是 @ant-design/x-sdk 的 useXChat + StreamChatProvider 模拟流式回复。`;\n\n    const encoder = new TextEncoder();\n    let index = 0;\n\n    const stream = new ReadableStream<Uint8Array>({\n      pull(controller) {\n        if (index >= reply.length) {\n          controller.close();\n          return;\n        }\n        const slice = reply.slice(0, index + 2);\n        index += 2;\n        const payload: ChatOutput = {\n          choices: [{ message: { content: slice, role: 'assistant' } }],\n        };\n        controller.enqueue(\n          encoder.encode(`data: ${JSON.stringify(payload)}\\n\\n`),\n        );\n      },\n    });\n\n    return new Response(stream, {\n      headers: { 'Content-Type': 'text/event-stream; charset=utf-8' },\n    });\n  };\n}\n\nexport default function SdkPage() {\n  const [input, setInput] = useState('');\n\n  const provider = useMemo(\n    () =>\n      new StreamChatProvider({\n        request: XRequest<ChatInput, ChatOutput>('/mock-chat', {\n          manual: true,\n          fetch: createMockFetch(),\n        }),\n      }),\n    [],\n  );\n\n  const { onRequest, messages, isRequesting } = useXChat({\n    provider,\n  });\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"X SDK - useXChat legacy v1 数据流\" style={{ marginBottom: 24 }}>\n        <div style={{ minHeight: 360, marginBottom: 16 }}>\n          {messages.length === 0 && (\n            <div style={{ textAlign: 'center', color: '#999', paddingTop: 140 }}>\n              使用 @ant-design/x-sdk 管理对话数据，在下方输入消息开始\n            </div>\n          )}\n          <Bubble.List\n            role={createChartBubbleRole((text) => {\n              return <XMarkdown>{text}</XMarkdown>;\n            })}\n            items={toChatBubbleItems(messages)}\n          />\n        </div>\n        <Sender\n          loading={isRequesting}\n          value={input}\n          onChange={setInput}\n          onSubmit={(val) => {\n            onRequest(createChatInput(val));\n            setInput('');\n          }}\n        />\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/sdk.tsx"
     },
@@ -3650,6 +3650,9 @@
   "globalJS": [],
   "overridesCSS": [],
   "bundler": "webpack",
+  "git": {
+    "originUrl": "https://gitee.com/WWXFG/ai-agent.git"
+  },
   "framework": "react",
   "typescript": {
     "tsVersion": "5.9.3",

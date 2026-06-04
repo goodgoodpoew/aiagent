@@ -1,4 +1,5 @@
 import type { BubbleListProps } from '@ant-design/x';
+import type { MessagePart, ChatRuntimeOptions } from '@/service/stream-protocol';
 
 export type ChatRole = 'user' | 'assistant' | 'system';
 
@@ -18,12 +19,16 @@ export interface ChatMessage {
   sessionId: string;
   role: ChatRole;
   content: string;
+  /** content 是兼容文本投影；parts 为 v2 结构化消息预留，当前不影响现有 Bubble 渲染。 */
+  parts?: MessagePart[];
+  /** 刷新历史消息时从 metadata.status 投影而来，便于恢复失败/流式占位展示。 */
+  status?: MessageRuntimeStatus;
   metadata?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt?: string;
 }
 
-export type MessageRuntimeStatus = 'sending' | 'streaming' | 'done' | 'error';
+export type MessageRuntimeStatus = 'sending' | 'streaming' | 'done' | 'failed';
 
 /** 聊天附件状态 */
 export interface ChatAttachment {
@@ -57,40 +62,10 @@ export interface ChatDraft {
   temperature?: number;
   max_tokens?: number;
   stream: boolean;
+  /** 默认只展示思考状态/摘要；完整 reasoning 需要显式改为 full。 */
+  reasoning?: ChatRuntimeOptions['reasoning'];
   /** 待发送的附件列表 */
   attachments: ChatAttachment[];
-}
-
-export interface SendChatPayload {
-  query: string;
-  sessionId?: string;
-  requestId?: string;
-  clientMessageId?: string;
-  autoGenerateSessionName?: boolean;
-  provider?: string;
-  model?: string;
-  credentialId?: string;
-  temperature?: number;
-  max_tokens?: number;
-  stream: boolean;
-  /** 已上传完成的文件 ID 列表 */
-  fileIds?: string[];
-}
-
-export interface ChatStreamChunk {
-  status?: string;
-  errorCode?: string;
-  sessionId?: string;
-  messageId?: string;
-  delta?: string;
-  role?: string;
-  choices: Array<{
-    message: {
-      content: string;
-      role: string;
-    };
-    sessionId?: string;
-  }>;
 }
 
 export type ChatBubbleItem = NonNullable<BubbleListProps['items']>[number];

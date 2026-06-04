@@ -171,6 +171,10 @@ export class ModelProviderRegistryService {
       baseUrl,
       apiKey,
       adapterType: provider.adapterType as AdapterType,
+      reasoning: {
+        supported: provider.name === 'openai' || provider.name === 'azure-openai',
+        requestEffortParam: 'reasoning_effort',
+      },
     };
   }
 

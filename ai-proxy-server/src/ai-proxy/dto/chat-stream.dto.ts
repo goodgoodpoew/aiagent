@@ -2,8 +2,9 @@ import { IsString, IsOptional, IsNumber, IsBoolean, IsArray, Min, Max } from 'cl
 import { AiPlatform } from './chat.dto';
 
 /**
- * 前端流式聊天请求 DTO
- * 对应 antdXStudy 中 createChatInput 发出的请求体
+ * v1 legacy 流式聊天请求 DTO。
+ * 仅供 Ant Design X 示例页和旧客户端继续访问 /api/ai/chat/stream；
+ * 主聊天页必须使用 ChatStreamRequestV2 + /api/ai/chat/stream/v2。
  */
 export class ChatStreamDto {
   /**

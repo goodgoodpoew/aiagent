@@ -1,4 +1,5 @@
-import type { ChatMessage, ChatRole } from '../types';
+import type { ChatMessage, ChatRole, MessageRuntimeStatus } from '../types';
+import type { MessagePart, StreamMessageSnapshot } from '@/service/stream-protocol';
 
 export interface BackendMessageDto {
   id: string;
@@ -6,6 +7,7 @@ export interface BackendMessageDto {
   role: string;
   content: string;
   metadata?: Record<string, unknown> | null;
+  parts?: MessagePart[];
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -26,13 +28,49 @@ function toIsoString(value: string | Date | undefined): string {
   return value instanceof Date ? value.toISOString() : value;
 }
 
+function readMetadataParts(metadata: Record<string, unknown> | null | undefined) {
+  const parts = metadata?.parts;
+  return Array.isArray(parts) ? (parts as MessagePart[]) : undefined;
+}
+
+function createTextPartFromContent(dto: Pick<BackendMessageDto, 'id' | 'content'>): MessagePart[] {
+  return [
+    {
+      id: `${dto.id}:text:0`,
+      type: 'text',
+      text: dto.content,
+      status: 'done',
+    },
+  ];
+}
+
+function readMetadataStatus(metadata: Record<string, unknown> | null | undefined): MessageRuntimeStatus | undefined {
+  const status = metadata?.status;
+  return toRuntimeStatus(status);
+}
+
+function toRuntimeStatus(status: unknown): MessageRuntimeStatus | undefined {
+  if (status === 'done') return 'done';
+  if (status === 'streaming') return 'streaming';
+  if (status === 'sending' || status === 'pending') return 'sending';
+  if (status === 'failed' || status === 'cancelled' || status === 'error') return 'failed';
+  return undefined;
+}
+
 export function normalizeMessage(dto: BackendMessageDto): ChatMessage {
+  const metadata = dto.metadata ?? null;
+  const parts = dto.parts ?? readMetadataParts(metadata) ?? createTextPartFromContent(dto);
+  const status = readMetadataStatus(metadata);
+
   return {
     id: dto.id,
     sessionId: dto.sessionId,
     role: normalizeRole(dto.role),
     content: dto.content,
-    metadata: dto.metadata ?? null,
+    // 后端把 v2 parts 持久化在 metadata.parts；旧消息没有 parts 时补一个 text part 保证渲染入口统一。
+    parts,
+    status,
+    metadata,
     createdAt: toIsoString(dto.createdAt),
     updatedAt: dto.updatedAt ? toIsoString(dto.updatedAt) : undefined,
   };
@@ -51,6 +89,7 @@ export function createLocalMessage(params: {
   sessionId: string;
   role: ChatRole;
   content: string;
+  parts?: MessagePart[];
   metadata?: Record<string, unknown>;
 }): ChatMessage {
   return {
@@ -58,7 +97,36 @@ export function createLocalMessage(params: {
     sessionId: params.sessionId,
     role: params.role,
     content: params.content,
+    parts: params.parts,
+    status: undefined,
     metadata: params.metadata ?? null,
     createdAt: new Date().toISOString(),
   };
+}
+
+export function normalizeStreamMessage(
+  snapshot: StreamMessageSnapshot,
+  sessionId: string,
+  fallback?: ChatMessage,
+): ChatMessage {
+  return {
+    id: snapshot.id,
+    sessionId,
+    role: normalizeRole(snapshot.role),
+    content: snapshot.content,
+    parts: snapshot.parts.length ? snapshot.parts : createTextPartFromContent(snapshot),
+    status: readMetadataStatus(snapshot.metadata) ?? toRuntimeStatus(snapshot.status),
+    metadata: snapshot.metadata ?? fallback?.metadata ?? null,
+    createdAt: snapshot.createdAt ? toIsoString(snapshot.createdAt) : fallback?.createdAt ?? new Date().toISOString(),
+    updatedAt: snapshot.updatedAt ? toIsoString(snapshot.updatedAt) : fallback?.updatedAt,
+  };
+}
+
+export function getMessageTextProjection(message: ChatMessage) {
+  const text = message.parts
+    ?.filter((part): part is Extract<MessagePart, { type: 'text' }> => part.type === 'text')
+    .map((part) => part.text)
+    .join('');
+
+  return text || message.content;
 }

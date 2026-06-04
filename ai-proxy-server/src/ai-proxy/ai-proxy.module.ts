@@ -11,6 +11,11 @@ import { SessionModule } from '@/session/session.module';
 import { MessageModule } from '../message/message.module';
 import { ModelProviderModule } from '../model-provider/model-provider.module';
 import { FileModule } from '../files/file.module';
+import { StreamingModule } from '../streaming/streaming.module';
+import { ToolModule } from '../tools/tool.module';
+import { OpenAiCompatibleStreamAdapter } from '../streaming/adapters/openai-compatible-stream.adapter';
+import { StreamMessageBuilderService } from '../streaming/services/stream-message-builder.service';
+import { StreamOrchestratorService } from '../streaming/services/stream-orchestrator.service';
 import { StreamFailureCoordinator } from './stream-failure/stream-failure.coordinator';
 import { STREAM_FAILURE_SINK } from './stream-failure/stream-failure.sink';
 import { LoggingFailureSink } from './stream-failure/sinks/logging-failure.sink';
@@ -29,12 +34,17 @@ import { ConversationApplicationService } from '../conversation/conversation-app
     MessageModule,
     ModelProviderModule,
     FileModule,
+    StreamingModule,
+    ToolModule,
   ],
   controllers: [AiProxyController],
   providers: [
     AiProxyService,
     ChatContextService,
     StreamCompletionService,
+    OpenAiCompatibleStreamAdapter,
+    StreamMessageBuilderService,
+    StreamOrchestratorService,
     SessionTitleQueueService,
     ConversationApplicationService,
     SessionTitleProcessor,

@@ -9,10 +9,10 @@ import {
   createChatInput,
   StreamChatProvider,
   toChatBubbleItems,
-} from '@/service/chat-shared';
+} from './chat-shared';
 import XMarkdown from '@ant-design/x-markdown';
 
-/** 模拟流式 SSE，无需真实 API Key */
+/** legacy v1 模拟流式 SSE，无需真实 API Key */
 function createMockFetch() {
   return async (
     _url: Parameters<typeof fetch>[0],
@@ -68,7 +68,7 @@ export default function SdkPage() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
-      <Card title="X SDK - useXChat 数据流" style={{ marginBottom: 24 }}>
+      <Card title="X SDK - useXChat legacy v1 数据流" style={{ marginBottom: 24 }}>
         <div style={{ minHeight: 360, marginBottom: 16 }}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', color: '#999', paddingTop: 140 }}>

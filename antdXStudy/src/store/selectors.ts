@@ -1,6 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 import type { RootState } from './index';
 import type { ChatBubbleItem } from './types';
+import { getMessageTextProjection } from './adapters/messageAdapter';
 
 export const selectCurrentSessionId = (state: RootState) => state.sessions.currentSessionId;
 
@@ -35,11 +36,12 @@ export const selectBubbleItems = createSelector(
   [selectCurrentMessages, selectMessageStatusById],
   // selector 是页面展示结构的唯一出口，避免组件里反复把领域消息转换成 Bubble.List items。
   (messages, statusByMessageId): ChatBubbleItem[] => messages.map((message) => {
+    const projectedContent = getMessageTextProjection(message);
     return {
       key: message.id,
       role: message.role,
       content: message,
-      loading: statusByMessageId[message.id] === 'streaming' && !message.content, // 状态为streaming 并且没有内容产出的时候才loading
+      loading: statusByMessageId[message.id] === 'streaming' && !projectedContent, // 状态为streaming 并且没有内容产出的时候才loading
     }
   }),
 );

@@ -18,6 +18,8 @@ import { Response } from 'express';
 import { ConversationApplicationService } from '../conversation/conversation-application.service';
 import { SkipResponseEnvelope } from '../common/response/skip-response-envelope.decorator';
 import { ModelProviderRegistryService } from '../model-provider/model-provider-registry.service';
+import type { ChatStreamRequestV2 } from '../streaming/dto/chat-stream-v2.dto';
+import { StreamOrchestratorService } from '../streaming/services/stream-orchestrator.service';
 import { AiProxyService } from './ai-proxy.service';
 import { ChatRequestDto, AiPlatform } from './dto/chat.dto';
 import { ChatStreamDto } from './dto/chat-stream.dto';
@@ -36,6 +38,7 @@ export class AiProxyController {
     private readonly streamCompletion: StreamCompletionService,
     private readonly streamFailureCoordinator: StreamFailureCoordinator,
     private readonly modelProviderRegistry: ModelProviderRegistryService,
+    private readonly streamOrchestrator: StreamOrchestratorService,
   ) {}
 
   @Post('chat')
@@ -54,6 +57,7 @@ export class AiProxyController {
     @Headers('x-user-id') userId: string,
     @Res() res: Response,
   ) {
+    // v1 legacy endpoint：仅保留给 Ant Design X 示例页和旧客户端；主聊天页走 chat/stream/v2。
     const query = dto.query;
     const platform = await this.modelProviderRegistry.resolveProvider(dto.provider ?? dto.platform);
     const model = await this.modelProviderRegistry.resolveModel(platform, dto.model, 'llm');
@@ -189,6 +193,18 @@ export class AiProxyController {
         res,
       });
     }
+  }
+
+  @Post('chat/stream/v2')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @SkipResponseEnvelope()
+  async chatStreamV2(
+    @Body() dto: ChatStreamRequestV2,
+    @Headers('x-user-id') userId: string,
+    @Res() res: Response,
+  ) {
+    // v2 controller 只做 HTTP 边界接入，协议编排集中在 StreamOrchestratorService。
+    return this.streamOrchestrator.streamChat(dto, userId || 'anonymous', res);
   }
 
   @Get('health')

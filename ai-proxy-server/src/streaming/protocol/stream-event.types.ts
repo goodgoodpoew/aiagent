@@ -1,0 +1,168 @@
+import type {
+  MessagePart,
+  ToolCallMessagePart,
+  ToolResultMessagePart,
+} from './message-part.types';
+
+export const STREAM_PROTOCOL_V2 = 'aiagent.stream.v2' as const;
+
+export type StreamProtocolV2 = typeof STREAM_PROTOCOL_V2;
+
+export type StreamEventType =
+  | 'stream.started'
+  | 'session.created'
+  | 'message.created'
+  | 'message.part.started'
+  | 'message.part.delta'
+  | 'message.part.completed'
+  | 'message.completed'
+  | 'tool.call.started'
+  | 'tool.call.delta'
+  | 'tool.call.completed'
+  | 'tool.result.started'
+  | 'tool.result.completed'
+  | 'reasoning.started'
+  | 'reasoning.delta'
+  | 'reasoning.completed'
+  | 'usage.updated'
+  | 'stream.completed'
+  | 'stream.failed';
+
+export interface StreamEventEnvelope<T = unknown> {
+  protocol: StreamProtocolV2;
+  id: string;
+  type: StreamEventType;
+  traceId: string;
+  requestId: string;
+  sessionId?: string;
+  messageId?: string;
+  timestamp: string;
+  sequence: number;
+  data: T;
+}
+
+export interface StreamEventScope {
+  sessionId?: string;
+  messageId?: string;
+}
+
+export interface StreamStartedData {
+  provider?: string;
+  model?: string;
+  createdAt: string;
+}
+
+export interface SessionCreatedData {
+  session: {
+    id: string;
+    title?: string | null;
+    titleStatus?: string;
+    version?: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface StreamMessageSnapshot {
+  id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  content: string;
+  parts: MessagePart[];
+  status: 'pending' | 'sending' | 'streaming' | 'done' | 'failed' | 'cancelled';
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MessageCreatedData {
+  userMessage: StreamMessageSnapshot;
+  assistantMessage: StreamMessageSnapshot;
+  clientMessageId: string;
+}
+
+export interface MessagePartStartedData {
+  part: MessagePart;
+}
+
+export interface MessagePartDeltaData {
+  partId: string;
+  type: MessagePart['type'];
+  delta: string;
+  field?: 'text' | 'summary' | 'encryptedContent' | 'argumentsText';
+}
+
+export interface MessagePartCompletedData {
+  partId: string;
+  type: MessagePart['type'];
+  status: 'done' | 'failed';
+  text?: string;
+  summary?: string;
+  encryptedContent?: string;
+  arguments?: Record<string, unknown>;
+  argumentsText?: string;
+  toolStatus?: ToolCallMessagePart['status'];
+  result?: unknown;
+  error?: ToolResultMessagePart['error'];
+}
+
+export interface ToolCallStartedData {
+  toolCallId: string;
+  toolName: string;
+  source: ToolCallMessagePart['source'];
+}
+
+export interface ToolCallDeltaData {
+  toolCallId: string;
+  toolName: string;
+  argumentsDelta: string;
+}
+
+export interface ToolCallCompletedData {
+  toolCallId: string;
+  toolName: string;
+  argumentsText: string;
+  arguments?: Record<string, unknown>;
+}
+
+export interface ToolResultStartedData {
+  toolCallId: string;
+  toolName: string;
+}
+
+export interface ToolResultCompletedData {
+  toolCallId: string;
+  toolName: string;
+  result?: unknown;
+  error?: ToolResultMessagePart['error'];
+}
+
+export interface MessageCompletedData {
+  message: StreamMessageSnapshot;
+}
+
+export interface UsageUpdatedData {
+  usage: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
+}
+
+export interface StreamCompletedData {
+  finishReason?: string;
+}
+
+export type StreamFailureStage =
+  | 'prepare'
+  | 'provider_connect'
+  | 'provider_stream'
+  | 'tool_execution'
+  | 'persistence'
+  | 'unknown';
+
+export interface StreamFailedData {
+  code: string;
+  message: string;
+  retryable: boolean;
+  stage: StreamFailureStage;
+}

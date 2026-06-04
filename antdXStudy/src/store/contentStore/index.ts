@@ -4,6 +4,10 @@ import type { ChatDraft, ChatAttachment } from '../types';
 const initialState: ChatDraft = {
   input: '',
   stream: true,
+  reasoning: {
+    enabled: true,
+    display: 'summary',
+  },
   attachments: [],
 };
 

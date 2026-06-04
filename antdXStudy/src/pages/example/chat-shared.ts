@@ -12,6 +12,12 @@ import {
 import type { MessageInfo } from '@ant-design/x-sdk';
 import React from 'react';
 
+/**
+ * Ant Design X 示例兼容层。
+ * 本文件随示例页放置，只服务 /chat、/sdk 等学习示例，继续适配 v1 choices SSE；
+ * /ai/chat 主业务请使用 chat-stream-v2.ts 和 stream-protocol.ts。
+ */
+
 /** 用户发送参数 */
 export interface ChatInput {
   query: string;

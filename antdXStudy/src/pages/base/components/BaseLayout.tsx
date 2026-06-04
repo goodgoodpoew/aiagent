@@ -1,5 +1,4 @@
 import { Bubble, Sender } from '@ant-design/x';
-import XMarkdown from '@ant-design/x-markdown';
 import { Button, Empty, Popconfirm, Space, Spin, Typography, Tag } from 'antd';
 import {
   DeleteOutlined,
@@ -31,7 +30,8 @@ import {
   removeAttachment,
   clearAttachments,
 } from '@/store/contentStore';
-import { uploadFile } from '@/service/chat';
+import { uploadFile } from '@/service/file';
+import { getMessageTextProjection } from '@/store/adapters/messageAdapter';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectBubbleItems,
@@ -43,6 +43,7 @@ import {
   selectStreamingState,
 } from '@/store/selectors';
 import type { ChatFile, ChatMessage } from '@/store/types';
+import MessagePartsRenderer from './MessagePartsRenderer';
 
 function formatFileSize(size: number) {
   if (size >= 1024 * 1024) {
@@ -88,7 +89,7 @@ const BaseLayout: FC = () => {
     () => ({
       assistant: {
         placement: 'start' as const,
-        contentRender: (message: ChatMessage) => <XMarkdown>{message.content}</XMarkdown>,
+        contentRender: (message: ChatMessage) => <MessagePartsRenderer message={message} />,
       },
       user: {
         placement: 'end' as const,
@@ -110,7 +111,7 @@ const BaseLayout: FC = () => {
                   )}
                 </div>
               )}
-              <div>{message.content}</div>
+              <div>{getMessageTextProjection(message)}</div>
             </div>
           );
         },

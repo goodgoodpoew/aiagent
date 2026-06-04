@@ -17,6 +17,24 @@ export const PROVIDER_TYPES = ['system', 'custom'] as const;
 
 export type ProviderType = (typeof PROVIDER_TYPES)[number];
 
+export interface ReasoningRuntimeOptions {
+  /** 是否启用推理 */
+  enabled?: boolean;
+  /** 推理能力等级 */
+  effort?: 'low' | 'medium' | 'high';
+  /** 推理结果显示方式 */
+  display?: 'none' | 'summary' | 'full';
+}
+
+export interface ProviderReasoningCapability {
+  supported: boolean;
+  requestEffortParam?: 'reasoning_effort';
+}
+
+export interface ProviderToolCallingCapability {
+  supported: boolean;
+}
+
 export interface CredentialConfig {
   apiKey?: string;
   baseUrl?: string;
@@ -37,4 +55,6 @@ export interface ResolvedChatProvider {
   baseUrl: string;
   apiKey: string;
   adapterType: AdapterType;
+  reasoning?: ProviderReasoningCapability;
+  toolCalling?: ProviderToolCallingCapability;
 }

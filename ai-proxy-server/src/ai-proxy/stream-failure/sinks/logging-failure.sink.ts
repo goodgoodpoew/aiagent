@@ -10,7 +10,7 @@ export class LoggingFailureSink implements StreamFailureSink {
   handle(payload: StreamFailureDispatchPayload): void {
     const { ctx, sanitized } = payload;
     this.logger.error(
-      `LLM 请求失败: session=${ctx.sessionId}, message=${ctx.assistantMessageId}, code=${sanitized.code}`,
+      `LLM 请求失败: session=${ctx.sessionId ?? 'n/a'}, message=${ctx.assistantMessageId ?? 'n/a'}, code=${sanitized.code}`,
       sanitized.logDetail,
     );
   }

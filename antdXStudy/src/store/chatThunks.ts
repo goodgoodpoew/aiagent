@@ -1,13 +1,13 @@
 import { createLocalMessage, normalizeMessageList } from './adapters/messageAdapter';
 import { normalizeSession, normalizeSessionList } from './adapters/sessionAdapter';
 import {
-  appendAssistantDelta,
   appendMessage,
+  applyStreamEvent,
   clearSessionMessages,
   loadMessagesFailure,
   loadMessagesStart,
   loadMessagesSuccess,
-  replaceMessageId,
+  markMessageFailed,
   replaceMessageSessionId,
   setMessageStatus,
 } from './messageStore';
@@ -32,7 +32,15 @@ import {
 } from '@/service/session';
 import { subscribeSessionEvents } from '@/service/session-events';
 import { fetchSessionMessages } from '@/service/message';
-import { sendChatStream } from '@/service/chat';
+import { sendChatStreamV2 } from '@/service/chat-stream-v2';
+import {
+  STREAM_PROTOCOL_V2,
+  type ChatStreamRequestV2,
+  type MessageCreatedData,
+  type SessionCreatedData,
+  type StreamEventEnvelope,
+  type StreamFailedData,
+} from '@/service/stream-protocol';
 
 function createClientId(prefix: string) {
   const uuid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -41,6 +49,16 @@ function createClientId(prefix: string) {
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
+}
+
+function readStreamFailureData(data: StreamFailedData | { error?: StreamFailedData }): StreamFailedData {
+  if ('error' in data && data.error) {
+    return {
+      ...data.error,
+      stage: data.error.stage ?? 'unknown',
+    };
+  }
+  return data as StreamFailedData;
 }
 
 export const loadSessions =
@@ -191,6 +209,15 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
   const attachments = state.content.attachments;
   const readyAttachments = attachments.filter((a) => a.status === 'ready');
   const readyFileIds = readyAttachments.map((a) => a.id);
+  const inputParts: ChatStreamRequestV2['input']['parts'] = [
+    { type: 'text', text: query },
+    ...readyAttachments.map((attachment) => ({
+      type: 'file' as const,
+      fileId: attachment.id,
+      name: attachment.name,
+      mimeType: attachment.type,
+    })),
+  ];
 
   const requestId = crypto.randomUUID?.() ?? createClientId('request');
   const clientMessageId = crypto.randomUUID?.() ?? createClientId('client-message');
@@ -305,52 +332,91 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
   };
 
   try {
-    await sendChatStream(
+    const handleStreamEvent = (event: StreamEventEnvelope) => {
+      if (event.sessionId) {
+        syncSession({ sessionId: event.sessionId });
+      }
+
+      if (event.type === 'session.created') {
+        const data = event.data as SessionCreatedData;
+        syncSession({
+          sessionId: data.session.id,
+          title: data.session.title,
+          titleStatus: data.session.titleStatus,
+          createdAt: data.session.createdAt,
+          updatedAt: data.session.updatedAt,
+          version: data.session.version,
+        });
+      }
+
+      dispatch(applyStreamEvent(event));
+
+      if (event.type === 'message.created') {
+        const data = event.data as MessageCreatedData;
+        userMessageId = data.userMessage.id;
+        assistantMessageId = data.assistantMessage.id;
+      }
+
+      if (event.type === 'stream.failed') {
+        streamFailed = true;
+        const data = readStreamFailureData(event.data as StreamFailedData | { error?: StreamFailedData });
+        if (!event.messageId) {
+          // 极早期失败可能没有服务端 messageId，此时把错误落到本地乐观 assistant 消息上。
+          dispatch(markMessageFailed({
+            messageId: assistantMessageId,
+            sessionId: resolvedSessionId ?? draftSessionId,
+            requestId,
+            error: data,
+          }));
+        }
+      }
+    };
+
+    await sendChatStreamV2(
       {
-        query,
+        protocol: STREAM_PROTOCOL_V2,
+        input: {
+          role: 'user',
+          parts: inputParts,
+        },
         sessionId: originalSessionId,
         requestId,
         clientMessageId,
-        provider: state.content.provider,
-        model: state.content.model,
-        credentialId: state.content.credentialId,
-        temperature: state.content.temperature,
-        max_tokens: state.content.max_tokens,
-        stream: state.content.stream,
-        fileIds: readyFileIds.length ? readyFileIds : undefined,
+        context: readyFileIds.length ? { fileIds: readyFileIds } : undefined,
+        // 主聊天页从这里开始只发送 v2 协议，provider 原始 chunk 由后端转换为 message.part.*。
+        runtime: {
+          provider: state.content.provider,
+          model: state.content.model,
+          credentialId: state.content.credentialId,
+          temperature: state.content.temperature,
+          maxTokens: state.content.max_tokens,
+          stream: true,
+          reasoning: state.content.reasoning,
+          autoGenerateSessionName: true,
+        },
       },
       {
-        onSessionId: (sessionId) => {
-          syncSession({ sessionId });
-        },
-        onSessionCreated: syncSession,
-        onMessageCreated: (payload) => {
-          syncSession({ sessionId: payload.sessionId });
-          dispatch(replaceMessageId({ oldId: userMessageId, nextId: payload.userMessageId }));
-          dispatch(replaceMessageId({ oldId: assistantMessageId, nextId: payload.assistantMessageId }));
-          userMessageId = payload.userMessageId;
-          assistantMessageId = payload.assistantMessageId;
-        },
-        onDelta: (delta) => {
-          dispatch(appendAssistantDelta({ messageId: assistantMessageId, delta }));
-        },
-        onErrorChunk: (message) => {
-          streamFailed = true;
-          dispatch(appendAssistantDelta({ messageId: assistantMessageId, delta: message }));
-          dispatch(setMessageStatus({ messageId: assistantMessageId, status: 'error', error: message }));
-        },
-        onDone: () => {
-          dispatch(setMessageStatus({ messageId: userMessageId, status: 'done' }));
-          if (!streamFailed) {
-            dispatch(setMessageStatus({ messageId: assistantMessageId, status: 'done' }));
-          }
-        },
+        onEvent: handleStreamEvent,
       },
     );
+
+    dispatch(setMessageStatus({ messageId: userMessageId, status: 'done' }));
+    if (!streamFailed) {
+      dispatch(setMessageStatus({ messageId: assistantMessageId, status: 'done' }));
+    }
   } catch (error) {
     const message = getErrorMessage(error, '请求失败，请稍后重试');
     dispatch(setMessageStatus({ messageId: userMessageId, status: 'done' }));
-    dispatch(setMessageStatus({ messageId: assistantMessageId, status: 'error', error: message }));
-    dispatch(appendAssistantDelta({ messageId: assistantMessageId, delta: message }));
+    dispatch(markMessageFailed({
+      messageId: assistantMessageId,
+      sessionId: resolvedSessionId ?? draftSessionId,
+      requestId,
+      error: {
+        code: 'CLIENT_REQUEST_FAILED',
+        message,
+        retryable: true,
+        stage: 'unknown',
+      },
+    }));
   }
 };

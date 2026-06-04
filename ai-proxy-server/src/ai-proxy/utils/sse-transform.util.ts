@@ -11,6 +11,7 @@ export interface PipCallBack {
   onError?: (error: Error) => void;
 }
 
+/** v1 legacy 客户端 chunk，保留 OpenAI-like choices 以兼容旧示例页。 */
 export interface ClientStreamChunk {
   status?: string;
   errorCode?: string;
@@ -64,6 +65,11 @@ export function writeClientStreamError(
   res.end();
 }
 
+/**
+ * v1 legacy SSE 转换器。
+ * 该函数把 OpenAI-compatible delta 投影成 choices 结构，只允许旧端点复用；
+ * v2 主链路应通过 streaming adapter + StreamEventWriter 输出 message.part.*。
+ */
 export function pipeOpenAiStreamToClient(
   upstream: IncomingMessage,
   res: Response,

@@ -1522,6 +1522,8 @@ async streamChat(dto: ChatStreamRequestV2, userId: string, res: Response) {
 
 ### 15.1 端点并行
 
+执行标注（2026-06-04）：端点并行策略已落地。主聊天页 `/ai/chat` 调用 `POST /api/ai/chat/stream/v2`；旧 `POST /api/ai/chat/stream` 仅作为 legacy 示例和旧客户端兼容入口保留。
+
 保留：
 
 ```text
@@ -1542,6 +1544,8 @@ POST /api/ai/chat/stream/v2
 
 ### 15.2 前端灰度
 
+执行标注（2026-06-04）：主聊天页已直接切换到 v2 service，不再保留主业务灰度开关；回滚入口限定为 `/chat`、`/sdk` 示例页的 legacy v1 兼容层。
+
 建议增加配置：
 
 ```ts
@@ -1556,6 +1560,12 @@ const USE_STREAM_PROTOCOL_V2 = true;
 2. 主聊天页切 v2。
 3. 示例页继续 v1。
 4. 验证稳定后移除 v1 主业务依赖。
+
+执行结果：
+
+- `antdXStudy/src/service/chat.ts` 已删除，主业务不再保留 v1 `sendChatStream()`。
+- legacy `chat-shared.ts` 已迁移到 `antdXStudy/src/pages/example/chat-shared.ts`。
+- `/` 默认跳转到 `/ai/chat`，避免默认进入 v1 示例页。
 
 ### 15.3 数据兼容
 
@@ -1847,10 +1857,10 @@ data: {"protocol":"aiagent.stream.v2","type":"stream.completed","sequence":8,"da
 | `ai-proxy-server/src/ai-proxy/utils/sse-transform.util.ts` | 解析 OpenAI-compatible SSE 并写 v1 chunk | 保留给 v1；v2 改为 adapter + writer |
 | `ai-proxy-server/src/ai-proxy/ai-proxy.controller.ts` | v1 stream controller | 新增 v2 endpoint，逐步瘦身 |
 | `ai-proxy-server/src/ai-proxy/stream-completion.service.ts` | 完成/失败持久化和事件 | 增加 complete/fail v2 message |
-| `antdXStudy/src/service/chat.ts` | v1 fetch/SSE client | 新增 `chat-stream-v2.ts` |
-| `antdXStudy/src/service/chat-shared.ts` | Ant Design X 示例适配 | 保留为示例兼容，不作为主协议 |
+| `antdXStudy/src/service/chat.ts` | v1 fetch/SSE client | 已删除；主业务使用 `chat-stream-v2.ts` |
+| `antdXStudy/src/pages/example/chat-shared.ts` | Ant Design X 示例适配 | 保留为 legacy 示例兼容，不作为主协议 |
 | `antdXStudy/src/store/types.ts` | ChatMessage 只有 content | 增加 parts/status |
-| `antdXStudy/src/store/messageStore/index.ts` | appendAssistantDelta | 增加 applyStreamEvent |
+| `antdXStudy/src/store/messageStore/index.ts` | appendAssistantDelta | 已删除 v1 delta action，主路径使用 applyStreamEvent |
 | `antdXStudy/src/store/chatThunks.ts` | v1 handlers 编排 | 切换为 v2 onEvent 编排 |
 | `ai-proxy-server/prisma/schema.prisma` | Message.content + metadata | 第一阶段不改表 |
 

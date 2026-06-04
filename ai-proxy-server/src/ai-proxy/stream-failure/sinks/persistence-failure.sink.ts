@@ -9,11 +9,15 @@ export class PersistenceFailureSink implements StreamFailureSink {
 
   constructor(private readonly streamCompletion: StreamCompletionService) {}
 
+  supports(payload: StreamFailureDispatchPayload): boolean {
+    return Boolean(payload.ctx.sessionId && payload.ctx.assistantMessageId);
+  }
+
   handle(payload: StreamFailureDispatchPayload): void {
     const { ctx, sanitized } = payload;
     this.streamCompletion.handleStreamFailure({
-      sessionId: ctx.sessionId,
-      messageId: ctx.assistantMessageId,
+      sessionId: ctx.sessionId!,
+      messageId: ctx.assistantMessageId!,
       sanitized,
       userId: ctx.userId,
       platform: ctx.platform,
