@@ -10,6 +10,7 @@ export class PersistenceFailureSink implements StreamFailureSink {
   constructor(private readonly streamCompletion: StreamCompletionService) {}
 
   supports(payload: StreamFailureDispatchPayload): boolean {
+    if (payload.options.persist === false) return false;
     return Boolean(payload.ctx.sessionId && payload.ctx.assistantMessageId);
   }
 

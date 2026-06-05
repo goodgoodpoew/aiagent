@@ -23,6 +23,13 @@ import { LoggingFailureSink } from './stream-failure/sinks/logging-failure.sink'
 import { SseFailureSink } from './stream-failure/sinks/sse-failure.sink';
 import { PersistenceFailureSink } from './stream-failure/sinks/persistence-failure.sink';
 import { ConversationApplicationService } from '../conversation/conversation-application.service';
+import { AgentRuntimeEventProjector } from '../agent-runtime/agent-runtime-event-projector.service';
+import { AgentRuntimeRunner } from '../agent-runtime/agent-runtime-runner.service';
+import { LangGraphAgentEngineAdapter } from '../agent-runtime/adapters/langgraph-agent-engine.adapter';
+import { NativeAgentEngineService } from '../agent-runtime/engines/native-agent-engine.service';
+import { DefaultToolGatewayService } from '../agent-runtime/gateways/default-tool-gateway.service';
+import { AGENT_ENGINE } from '../agent-runtime/ports/agent-engine.port';
+import { TOOL_GATEWAY } from '../agent-runtime/ports/tool-gateway.port';
 
 @Module({
   imports: [
@@ -46,6 +53,19 @@ import { ConversationApplicationService } from '../conversation/conversation-app
     OpenAiCompatibleStreamAdapter,
     StreamMessageBuilderService,
     StreamOrchestratorService,
+    AgentRuntimeEventProjector,
+    AgentRuntimeRunner,
+    DefaultToolGatewayService,
+    NativeAgentEngineService,
+    LangGraphAgentEngineAdapter,
+    {
+      provide: TOOL_GATEWAY,
+      useExisting: DefaultToolGatewayService,
+    },
+    {
+      provide: AGENT_ENGINE,
+      useExisting: NativeAgentEngineService,
+    },
     SessionTitleQueueService,
     TokenUsageEstimatorService,
     ConversationApplicationService,
