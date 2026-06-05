@@ -8,6 +8,7 @@ export type MessagePart =
   | FileReadMessagePart
   | FileMessagePart
   | ReferenceMessagePart
+  | ProcessTraceMessagePart
   | ErrorMessagePart;
 
 export interface TextMessagePart {
@@ -79,6 +80,56 @@ export interface ReferenceMessagePart {
   fileId?: string;
   quote?: string;
   source?: 'file' | 'mcp' | 'web' | 'session';
+}
+
+export type ProcessTraceStatus =
+  | 'pending'
+  | 'running'
+  | 'done'
+  | 'failed'
+  | 'skipped'
+  | 'cancelled';
+
+export type ProcessTraceType =
+  | 'thinking'
+  | 'context'
+  | 'file_read'
+  | 'knowledge_retrieval'
+  | 'mcp_resource'
+  | 'mcp_tool'
+  | 'builtin_tool'
+  | 'custom_tool'
+  | 'citation'
+  | 'system';
+
+export interface ProcessTraceMessagePart {
+  id: string;
+  type: 'process_trace';
+  traceType: ProcessTraceType;
+  title: string;
+  status: ProcessTraceStatus;
+  visibility: 'hidden' | 'status' | 'summary' | 'detail';
+  summary?: string;
+  detail?: Record<string, unknown>;
+  refs?: Array<{
+    type: 'file' | 'mcp' | 'knowledge' | 'web' | 'session' | 'tool';
+    id?: string;
+    title?: string;
+    uri?: string;
+  }>;
+  metrics?: {
+    startedAt?: string;
+    completedAt?: string;
+    durationMs?: number;
+    tokenEstimate?: number;
+    inputBytes?: number;
+    outputBytes?: number;
+  };
+  error?: {
+    code: string;
+    message: string;
+    retryable: boolean;
+  };
 }
 
 export interface ErrorMessagePart {

@@ -3,6 +3,7 @@ import { MESSAGE_PROTOCOL_V2 } from '@/message/dto/create-message.dto';
 import type {
   MessagePart,
   FileReadMessagePart,
+  ProcessTraceMessagePart,
   ReasoningMessagePart,
   TextMessagePart,
   ToolCallMessagePart,
@@ -51,6 +52,19 @@ export interface CompletedFileReadPartInput {
   tokenEstimate?: number;
   status: Extract<FileReadMessagePart['status'], 'done' | 'failed'>;
   reason?: string;
+}
+
+export interface CompletedProcessTracePartInput {
+  id: string;
+  traceType: ProcessTraceMessagePart['traceType'];
+  title: string;
+  status: Extract<ProcessTraceMessagePart['status'], 'done' | 'failed' | 'skipped' | 'cancelled'>;
+  visibility: ProcessTraceMessagePart['visibility'];
+  summary?: string;
+  detail?: ProcessTraceMessagePart['detail'];
+  refs?: ProcessTraceMessagePart['refs'];
+  metrics?: ProcessTraceMessagePart['metrics'];
+  error?: ProcessTraceMessagePart['error'];
 }
 
 @Injectable()
@@ -265,6 +279,46 @@ export class StreamMessageBuilderService {
     };
   }
 
+  startProcessTracePart(input: Omit<CompletedProcessTracePartInput, 'status'> & {
+    status?: ProcessTraceMessagePart['status'];
+  }): MessagePartStartedData {
+    return {
+      part: this.buildProcessTracePart({
+        ...input,
+        status: input.status ?? 'running',
+      }),
+    };
+  }
+
+  appendProcessTraceSummaryDelta(
+    partId: string,
+    delta: string,
+  ): MessagePartDeltaData {
+    return {
+      partId,
+      type: 'process_trace',
+      delta,
+      field: 'summary',
+    };
+  }
+
+  completeProcessTracePart(input: CompletedProcessTracePartInput): MessagePartCompletedData {
+    return {
+      partId: input.id,
+      type: 'process_trace',
+      status: input.status,
+      traceStatus: input.status,
+      traceType: input.traceType,
+      title: input.title,
+      visibility: input.visibility,
+      ...(input.summary !== undefined ? { summary: input.summary } : {}),
+      ...(input.detail ? { detail: input.detail } : {}),
+      ...(input.refs ? { refs: input.refs } : {}),
+      ...(input.metrics ? { metrics: input.metrics } : {}),
+      ...(input.error ? { processError: input.error } : {}),
+    };
+  }
+
   buildCompletedAssistantMessage(
     state: StreamMessageBuilderState,
     params: {
@@ -273,6 +327,7 @@ export class StreamMessageBuilderService {
       reasoning?: CompletedReasoningPartInput;
       toolCalls?: CompletedToolCallPartInput[];
       toolResults?: CompletedToolResultPartInput[];
+      processTraces?: CompletedProcessTracePartInput[];
     },
   ): StreamMessageSnapshot {
     // 完整快照用于 message.completed 和最终持久化：
@@ -290,6 +345,9 @@ export class StreamMessageBuilderService {
     });
     params.toolResults?.forEach((toolResult) => {
       parts.push(this.buildToolResultPart(state, toolResult));
+    });
+    params.processTraces?.forEach((processTrace) => {
+      parts.push(this.buildProcessTracePart(processTrace));
     });
 
     const textPart: TextMessagePart = {
@@ -403,6 +461,26 @@ export class StreamMessageBuilderService {
       ...(input.result !== undefined ? { result: input.result } : {}),
       ...(input.error ? { error: input.error } : {}),
       status: input.status,
+    };
+  }
+
+  private buildProcessTracePart(
+    input: CompletedProcessTracePartInput | (Omit<CompletedProcessTracePartInput, 'status'> & {
+      status: ProcessTraceMessagePart['status'];
+    }),
+  ): ProcessTraceMessagePart {
+    return {
+      id: input.id,
+      type: 'process_trace',
+      traceType: input.traceType,
+      title: input.title,
+      status: input.status,
+      visibility: input.visibility,
+      ...(input.summary !== undefined ? { summary: input.summary } : {}),
+      ...(input.detail ? { detail: input.detail } : {}),
+      ...(input.refs ? { refs: input.refs } : {}),
+      ...(input.metrics ? { metrics: input.metrics } : {}),
+      ...(input.error ? { error: input.error } : {}),
     };
   }
 }

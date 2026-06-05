@@ -1,5 +1,7 @@
 import type {
   MessagePart,
+  ProcessTraceMessagePart,
+  ProcessTraceStatus,
   ToolCallMessagePart,
   ToolResultMessagePart,
 } from './message-part.types';
@@ -24,6 +26,11 @@ export type StreamEventType =
   | 'reasoning.started'
   | 'reasoning.delta'
   | 'reasoning.completed'
+  | 'process.trace.started'
+  | 'process.trace.delta'
+  | 'process.trace.completed'
+  | 'process.trace.failed'
+  | 'process.trace.skipped'
   | 'usage.updated'
   | 'stream.completed'
   | 'stream.failed';
@@ -94,7 +101,7 @@ export interface MessagePartDeltaData {
 export interface MessagePartCompletedData {
   partId: string;
   type: MessagePart['type'];
-  status: 'done' | 'failed';
+  status: 'done' | 'failed' | 'skipped' | 'cancelled';
   fileId?: string;
   name?: string;
   mimeType?: string;
@@ -108,6 +115,14 @@ export interface MessagePartCompletedData {
   toolStatus?: ToolCallMessagePart['status'];
   result?: unknown;
   error?: ToolResultMessagePart['error'];
+  traceStatus?: ProcessTraceStatus;
+  traceType?: ProcessTraceMessagePart['traceType'];
+  title?: string;
+  visibility?: ProcessTraceMessagePart['visibility'];
+  detail?: ProcessTraceMessagePart['detail'];
+  refs?: ProcessTraceMessagePart['refs'];
+  metrics?: ProcessTraceMessagePart['metrics'];
+  processError?: ProcessTraceMessagePart['error'];
 }
 
 export interface ToolCallStartedData {
@@ -153,6 +168,28 @@ export interface UsageUpdatedData {
     source?: 'estimated' | 'provider';
     strategy?: string;
   };
+}
+
+export interface ProcessTraceStartedData {
+  part: ProcessTraceMessagePart;
+}
+
+export interface ProcessTraceDeltaData {
+  partId: string;
+  summaryDelta?: string;
+  detailPatch?: Record<string, unknown>;
+  status?: ProcessTraceStatus;
+  metricsPatch?: ProcessTraceMessagePart['metrics'];
+}
+
+export interface ProcessTraceCompletedData {
+  partId: string;
+  status: Extract<ProcessTraceStatus, 'done' | 'failed' | 'skipped' | 'cancelled'>;
+  summary?: string;
+  detail?: ProcessTraceMessagePart['detail'];
+  refs?: ProcessTraceMessagePart['refs'];
+  metrics?: ProcessTraceMessagePart['metrics'];
+  error?: ProcessTraceMessagePart['error'];
 }
 
 export interface StreamCompletedData {

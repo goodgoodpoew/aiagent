@@ -10,6 +10,10 @@ import type {
   MessagePartCompletedData,
   MessagePartDeltaData,
   MessagePartStartedData,
+  ProcessTraceCompletedData,
+  ProcessTraceDeltaData,
+  ProcessTraceMessagePart,
+  ProcessTraceStartedData,
   StreamEventEnvelope,
   StreamFailedData,
   ToolCallMessagePart,
@@ -121,6 +125,90 @@ function ensureAssistantMessage(
 
 function projectTextParts(message: ChatMessage) {
   message.content = getMessageTextProjection(message);
+}
+
+function ensureProcessTracePart(
+  message: ChatMessage,
+  partId: string,
+  fallback?: Partial<ProcessTraceMessagePart>,
+) {
+  message.parts ??= [];
+  let part = message.parts.find((item) => item.id === partId);
+  if (!part) {
+    part = {
+      id: partId,
+      type: 'process_trace',
+      traceType: fallback?.traceType ?? 'system',
+      title: fallback?.title ?? '处理过程',
+      status: fallback?.status ?? 'running',
+      visibility: fallback?.visibility ?? 'summary',
+      summary: fallback?.summary,
+      detail: fallback?.detail,
+      refs: fallback?.refs,
+      metrics: fallback?.metrics,
+      error: fallback?.error,
+    } satisfies ProcessTraceMessagePart;
+    message.parts.push(part);
+  }
+  return part.type === 'process_trace' ? part : undefined;
+}
+
+function applyProcessTraceDelta(
+  part: ProcessTraceMessagePart,
+  data: ProcessTraceDeltaData,
+) {
+  if (data.summaryDelta) {
+    part.summary = `${part.summary ?? ''}${data.summaryDelta}`;
+  }
+  if (data.status) {
+    part.status = data.status;
+  }
+  if (data.detailPatch) {
+    part.detail = {
+      ...(part.detail ?? {}),
+      ...data.detailPatch,
+    };
+  }
+  if (data.metricsPatch) {
+    part.metrics = {
+      ...(part.metrics ?? {}),
+      ...data.metricsPatch,
+    };
+  }
+}
+
+function applyProcessTraceCompleted(
+  part: ProcessTraceMessagePart,
+  data: ProcessTraceCompletedData | MessagePartCompletedData,
+) {
+  part.status = ('traceStatus' in data && data.traceStatus) ? data.traceStatus : data.status;
+  if ('traceType' in data && data.traceType) {
+    part.traceType = data.traceType;
+  }
+  if ('title' in data && data.title) {
+    part.title = data.title;
+  }
+  if ('visibility' in data && data.visibility) {
+    part.visibility = data.visibility;
+  }
+  if (data.summary !== undefined) {
+    part.summary = data.summary;
+  }
+  if (data.detail !== undefined) {
+    part.detail = data.detail;
+  }
+  if (data.refs !== undefined) {
+    part.refs = data.refs;
+  }
+  if (data.metrics !== undefined) {
+    part.metrics = data.metrics;
+  }
+  if ('processError' in data && data.processError !== undefined) {
+    part.error = data.processError;
+  }
+  if ('error' in data && data.error !== undefined) {
+    part.error = data.error;
+  }
 }
 
 function readStreamFailureData(data: StreamFailedData | { error?: StreamFailedData }) {
@@ -326,6 +414,23 @@ const messageSlice = createSlice({
         return;
       }
 
+      if (event.type === 'process.trace.started') {
+        const data = event.data as ProcessTraceStartedData;
+        if (!event.messageId || !event.sessionId) return;
+        const message = ensureAssistantMessage(state, {
+          messageId: event.messageId,
+          sessionId: event.sessionId,
+          requestId: event.requestId,
+        });
+        message.parts ??= [];
+        if (!message.parts.some((part) => part.id === data.part.id)) {
+          message.parts.push(data.part);
+        }
+        state.statusByMessageId[event.messageId] = 'streaming';
+        state.streamingMessageId = event.messageId;
+        return;
+      }
+
       if (event.type === 'message.part.delta') {
         // part.delta 是流式输出的核心：后端每收到一小段 provider 增量，
         // 就转成某个 part 的 delta，前端在这里把它追加到对应 part 上。
@@ -363,6 +468,9 @@ const messageSlice = createSlice({
           };
           message.parts.push(part);
         }
+        if (!part && data.type === 'process_trace') {
+          part = ensureProcessTracePart(message, data.partId);
+        }
         if (part?.type === 'text') {
           // text part 的投影会同步写入 message.content，供 Bubble.List 和旧展示逻辑读取。
           part.text += data.delta;
@@ -385,6 +493,27 @@ const messageSlice = createSlice({
           // 工具参数是模型流式生成的 JSON 字符串，先保留原文，完成时再用解析后的 arguments 覆盖展示。
           part.argumentsText = `${part.argumentsText ?? ''}${data.delta}`;
           part.status = 'partial';
+        }
+        if (part?.type === 'process_trace') {
+          part.summary = `${part.summary ?? ''}${data.delta}`;
+          part.status = 'running';
+        }
+        state.statusByMessageId[event.messageId] = 'streaming';
+        state.streamingMessageId = event.messageId;
+        return;
+      }
+
+      if (event.type === 'process.trace.delta') {
+        const data = event.data as ProcessTraceDeltaData;
+        if (!event.messageId || !event.sessionId) return;
+        const message = ensureAssistantMessage(state, {
+          messageId: event.messageId,
+          sessionId: event.sessionId,
+          requestId: event.requestId,
+        });
+        const part = ensureProcessTracePart(message, data.partId);
+        if (part) {
+          applyProcessTraceDelta(part, data);
         }
         state.statusByMessageId[event.messageId] = 'streaming';
         state.streamingMessageId = event.messageId;
@@ -457,11 +586,35 @@ const messageSlice = createSlice({
           }
           fileReadPart.status = data.status;
         }
+        if (part?.type === 'process_trace') {
+          applyProcessTraceCompleted(part, data);
+        }
         const failedMessagePart = data.status === 'failed'
           && data.type !== 'tool_call'
           && data.type !== 'tool_result'
-          && data.type !== 'file_read';
+          && data.type !== 'file_read'
+          && data.type !== 'process_trace';
         state.statusByMessageId[event.messageId] = failedMessagePart ? 'failed' : 'streaming';
+        return;
+      }
+
+      if (
+        event.type === 'process.trace.completed'
+        || event.type === 'process.trace.failed'
+        || event.type === 'process.trace.skipped'
+      ) {
+        const data = event.data as ProcessTraceCompletedData;
+        if (!event.messageId || !event.sessionId) return;
+        const message = ensureAssistantMessage(state, {
+          messageId: event.messageId,
+          sessionId: event.sessionId,
+          requestId: event.requestId,
+        });
+        const part = ensureProcessTracePart(message, data.partId);
+        if (part) {
+          applyProcessTraceCompleted(part, data);
+        }
+        state.statusByMessageId[event.messageId] = 'streaming';
         return;
       }
 

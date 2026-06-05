@@ -108,6 +108,7 @@ export type MessagePart =
   | FileReadMessagePart
   | FileMessagePart
   | ReferenceMessagePart
+  | ProcessTraceMessagePart
   | ErrorMessagePart;
 
 export interface TextMessagePart {
@@ -181,6 +182,56 @@ export interface ReferenceMessagePart {
   source?: 'file' | 'mcp' | 'web' | 'session';
 }
 
+export type ProcessTraceStatus =
+  | 'pending'
+  | 'running'
+  | 'done'
+  | 'failed'
+  | 'skipped'
+  | 'cancelled';
+
+export type ProcessTraceType =
+  | 'thinking'
+  | 'context'
+  | 'file_read'
+  | 'knowledge_retrieval'
+  | 'mcp_resource'
+  | 'mcp_tool'
+  | 'builtin_tool'
+  | 'custom_tool'
+  | 'citation'
+  | 'system';
+
+export interface ProcessTraceMessagePart {
+  id: string;
+  type: 'process_trace';
+  traceType: ProcessTraceType;
+  title: string;
+  status: ProcessTraceStatus;
+  visibility: 'hidden' | 'status' | 'summary' | 'detail';
+  summary?: string;
+  detail?: Record<string, unknown>;
+  refs?: Array<{
+    type: 'file' | 'mcp' | 'knowledge' | 'web' | 'session' | 'tool';
+    id?: string;
+    title?: string;
+    uri?: string;
+  }>;
+  metrics?: {
+    startedAt?: string;
+    completedAt?: string;
+    durationMs?: number;
+    tokenEstimate?: number;
+    inputBytes?: number;
+    outputBytes?: number;
+  };
+  error?: {
+    code: string;
+    message: string;
+    retryable: boolean;
+  };
+}
+
 export interface ErrorMessagePart {
   id: string;
   type: 'error';
@@ -206,6 +257,11 @@ export type StreamEventType =
   | 'reasoning.started'
   | 'reasoning.delta'
   | 'reasoning.completed'
+  | 'process.trace.started'
+  | 'process.trace.delta'
+  | 'process.trace.completed'
+  | 'process.trace.failed'
+  | 'process.trace.skipped'
   | 'usage.updated'
   | 'stream.completed'
   | 'stream.failed';
@@ -276,7 +332,7 @@ export interface MessagePartDeltaData {
 export interface MessagePartCompletedData {
   partId: string;
   type: MessagePart['type'];
-  status: 'done' | 'failed';
+  status: 'done' | 'failed' | 'skipped' | 'cancelled';
   fileId?: string;
   name?: string;
   mimeType?: string;
@@ -290,6 +346,14 @@ export interface MessagePartCompletedData {
   toolStatus?: ToolCallMessagePart['status'];
   result?: unknown;
   error?: ToolResultMessagePart['error'];
+  traceStatus?: ProcessTraceStatus;
+  traceType?: ProcessTraceMessagePart['traceType'];
+  title?: string;
+  visibility?: ProcessTraceMessagePart['visibility'];
+  detail?: ProcessTraceMessagePart['detail'];
+  refs?: ProcessTraceMessagePart['refs'];
+  metrics?: ProcessTraceMessagePart['metrics'];
+  processError?: ProcessTraceMessagePart['error'];
 }
 
 export interface ToolCallStartedData {
@@ -333,6 +397,28 @@ export interface UsageUpdatedData {
     completionTokens?: number;
     totalTokens?: number;
   };
+}
+
+export interface ProcessTraceStartedData {
+  part: ProcessTraceMessagePart;
+}
+
+export interface ProcessTraceDeltaData {
+  partId: string;
+  summaryDelta?: string;
+  detailPatch?: Record<string, unknown>;
+  status?: ProcessTraceStatus;
+  metricsPatch?: ProcessTraceMessagePart['metrics'];
+}
+
+export interface ProcessTraceCompletedData {
+  partId: string;
+  status: Extract<ProcessTraceStatus, 'done' | 'failed' | 'skipped' | 'cancelled'>;
+  summary?: string;
+  detail?: ProcessTraceMessagePart['detail'];
+  refs?: ProcessTraceMessagePart['refs'];
+  metrics?: ProcessTraceMessagePart['metrics'];
+  error?: ProcessTraceMessagePart['error'];
 }
 
 export interface StreamCompletedData {
