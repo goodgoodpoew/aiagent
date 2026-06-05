@@ -19,7 +19,7 @@ pnpm dev
 POST http://localhost:3001/api/ai/chat/stream/v2
 ```
 
-`/chat` 和 `/sdk` 是 Ant Design X 学习示例，仍保留 v1 legacy 兼容层，用来验证 `useXChat` 和旧 `choices` SSE。新增主业务不要引用 legacy 示例代码。
+前端只消费 `aiagent.stream.v2` 的 `StreamEventEnvelope`，并通过 `message.part.*`、`message.completed`、`stream.completed`、`stream.failed` 等事件驱动消息渲染。
 
 ## 示例页面
 
@@ -28,7 +28,6 @@ POST http://localhost:3001/api/ai/chat/stream/v2
 | `/ai/chat` | 主聊天页（v2 structured SSE） |
 | `/ai/models` | 模型管理 |
 | `/ai/files` | 文件管理 |
-| `/chat` | legacy v1 示例（useXChat + 旧 SSE） |
 | `/bubble` | 消息气泡 |
 | `/welcome` | 欢迎页 |
 | `/prompt` | 提示词列表 |
@@ -52,7 +51,7 @@ POST http://localhost:3001/api/ai/chat/stream/v2
 - [Ant Design](https://ant.design)
 - React 18 + TypeScript
 
-## 迁移与回滚
+## 开发约定
 
-- 主路径问题优先修复 v2：`src/service/chat-stream-v2.ts`、`src/service/stream-protocol.ts`、`src/store/chatThunks.ts`。
-- 如需临时回滚观察旧示例，可访问 `/chat`；不要把 v1 `choices` 解析重新接回 `/ai/chat`。
+- 聊天流式能力只维护 v2：`src/service/chat-stream-v2.ts`、`src/service/stream-protocol.ts`、`src/store/chatThunks.ts`。
+- 新增聊天相关能力时只接入 `aiagent.stream.v2`，不要重新引入旧的 OpenAI-like SSE 响应解析。

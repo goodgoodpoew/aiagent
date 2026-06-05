@@ -6,6 +6,7 @@ const initialState: ChatDraft = {
   stream: true,
   reasoning: {
     enabled: true,
+    effort: 'medium',
     display: 'summary',
   },
   attachments: [],

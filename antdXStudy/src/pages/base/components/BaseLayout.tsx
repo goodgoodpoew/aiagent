@@ -1,5 +1,5 @@
 import { Bubble, Sender } from '@ant-design/x';
-import { Button, Empty, Popconfirm, Space, Spin, Typography, Tag } from 'antd';
+import { Button, Empty, Popconfirm, Space, Spin, Typography, Tag, Switch, Select } from 'antd';
 import {
   DeleteOutlined,
   MessageOutlined,
@@ -29,6 +29,7 @@ import {
   updateAttachment,
   removeAttachment,
   clearAttachments,
+  updateDraft,
 } from '@/store/contentStore';
 import { uploadFile } from '@/service/file';
 import { getMessageTextProjection } from '@/store/adapters/messageAdapter';
@@ -66,6 +67,7 @@ const BaseLayout: FC = () => {
   const { isStreaming } = useAppSelector(selectStreamingState);
   const input = useAppSelector((state) => state.content.input);
   const attachments = useAppSelector((state) => state.content.attachments);
+  const reasoning = useAppSelector((state) => state.content.reasoning);
   const sessionsLoading = useAppSelector((state) => state.sessions.loading);
   const messagesLoading = useAppSelector((state) =>
     currentSessionId ? state.messages.loadingBySessionId[currentSessionId] : false,
@@ -429,6 +431,75 @@ const BaseLayout: FC = () => {
               {attachments.map(renderAttachmentItem)}
             </div>
           )}
+
+          <Space wrap size={8} style={{ marginBottom: 8 }}>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              思考
+            </Typography.Text>
+            <Switch
+              size="small"
+              checked={reasoning?.enabled !== false}
+              disabled={isStreaming}
+              onChange={(enabled) =>
+                dispatch(
+                  updateDraft({
+                    reasoning: {
+                      enabled,
+                      effort: reasoning?.effort ?? 'medium',
+                      display: reasoning?.display ?? 'summary',
+                    },
+                  }),
+                )
+              }
+            />
+            <Select
+              size="small"
+              style={{ width: 88 }}
+              disabled={isStreaming || reasoning?.enabled === false}
+              value={reasoning?.effort ?? 'medium'}
+              options={[
+                { label: '低强度', value: 'low' },
+                { label: '中强度', value: 'medium' },
+                { label: '高强度', value: 'high' },
+              ]}
+              onChange={(effort) =>
+                dispatch(
+                  updateDraft({
+                    reasoning: {
+                      enabled: reasoning?.enabled !== false,
+                      effort,
+                      display: reasoning?.display ?? 'summary',
+                    },
+                  }),
+                )
+              }
+            />
+            <Select
+              size="small"
+              style={{ width: 88 }}
+              disabled={isStreaming || reasoning?.enabled === false}
+              value={reasoning?.display ?? 'summary'}
+              options={[
+                { label: '隐藏', value: 'none' },
+                { label: '摘要', value: 'summary' },
+                { label: '完整', value: 'full' },
+              ]}
+              onChange={(display) =>
+                dispatch(
+                  updateDraft({
+                    reasoning: {
+                      enabled: reasoning?.enabled !== false,
+                      effort: reasoning?.effort ?? 'medium',
+                      display,
+                    },
+                  }),
+                )
+              }
+            />
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              强度仅对 OpenAI 等支持 reasoning_effort 的模型生效
+            </Typography.Text>
+          </Space>
 
           <Sender
             loading={isStreaming}

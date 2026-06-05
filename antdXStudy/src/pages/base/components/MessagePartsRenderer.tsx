@@ -25,6 +25,8 @@ const MessagePartsRenderer: FC<MessagePartsRendererProps> = ({ message }) => {
     return <XMarkdown>{getMessageTextProjection(message)}</XMarkdown>;
   }
 
+  // 后端 v2 协议把 assistant 输出拆成多个 part：
+  // text 是最终回答，reasoning/tool/file_read/error 是辅助过程，各自用不同组件渲染以免混在正文里。
   return (
     <Space direction="vertical" size={8} style={{ width: '100%' }}>
       {parts.map((part) => {
@@ -129,6 +131,30 @@ const MessagePartsRenderer: FC<MessagePartsRendererProps> = ({ message }) => {
               showIcon
               message={`${part.toolName} ${part.status === 'streaming' ? '执行中' : '执行结果'}`}
               description={<Typography.Paragraph style={{ whiteSpace: 'pre-wrap', marginBottom: 0 }}>{content}</Typography.Paragraph>}
+            />
+          );
+        }
+
+        if (part.type === 'file_read') {
+          // file_read part 展示后端读取附件的过程和结果，帮助用户理解附件是否进入了模型上下文。
+          const statusText = part.status === 'streaming'
+            ? '正在读取附件'
+            : part.status === 'failed'
+              ? '未读取附件'
+              : '已读取附件';
+          const description = part.status === 'failed'
+            ? part.reason ?? '文件未进入本轮模型上下文'
+            : part.tokenEstimate !== undefined
+              ? `约 ${part.tokenEstimate} tokens`
+              : undefined;
+
+          return (
+            <Alert
+              key={part.id}
+              type={part.status === 'failed' ? 'warning' : part.status === 'streaming' ? 'info' : 'success'}
+              showIcon
+              message={`${statusText}：${part.name}`}
+              description={description}
             />
           );
         }

@@ -2,8 +2,9 @@ import { BadRequestException, Inject, Injectable, Logger, NotFoundException } fr
 import type { Response } from 'express';
 import * as crypto from 'crypto';
 import { AiProxyService } from '@/ai-proxy/ai-proxy.service';
-import { ChatRequestDto } from '@/ai-proxy/dto/chat.dto';
+import { ChatRequestDto, type ChatMessage } from '@/ai-proxy/dto/chat.dto';
 import { sanitizeStreamError, StreamErrorCode } from '@/ai-proxy/errors/stream-error.util';
+import { TokenUsageEstimatorService } from '@/ai-proxy/token-usage-estimator.service';
 import { ConversationApplicationService } from '@/conversation/conversation-application.service';
 import { MessageService } from '@/message/message.service';
 import { ModelProviderRegistryService } from '@/model-provider/model-provider-registry.service';
@@ -18,6 +19,7 @@ import {
 import { OpenAiCompatibleStreamAdapter } from '../adapters/openai-compatible-stream.adapter';
 import {
   StreamMessageBuilderService,
+  type CompletedFileReadPartInput,
   type CompletedReasoningPartInput,
   type CompletedToolCallPartInput,
   type CompletedToolResultPartInput,
@@ -47,11 +49,13 @@ export class StreamOrchestratorService {
     private readonly messageBuilder: StreamMessageBuilderService,
     private readonly toolRegistry: ToolRegistryService,
     private readonly toolExecutor: ToolExecutorService,
+    private readonly tokenUsageEstimator: TokenUsageEstimatorService,
     @Inject(STREAM_EVENT_WRITER_FACTORY)
     private readonly createWriter: StreamEventWriterFactory,
-  ) {}
+  ) { }
 
   async streamChat(dto: ChatStreamRequestV2, userId: string, res: Response): Promise<void> {
+    // 1. 建立对前端的 SSE 通道。后续所有事件都通过 writer 写回同一个 HTTP 响应。
     this.prepareSseResponse(res);
 
     const requestId = dto.requestId || crypto.randomUUID();
@@ -65,18 +69,25 @@ export class StreamOrchestratorService {
     let failureStage: StreamFailureStage = 'prepare';
 
     try {
+      // 2. 解析前端 v2 请求：input.parts 是前端结构化输入，runtime 决定 provider/model/tool/reasoning。
+      // 这里先把这些信息归一化成后端会话、消息和 OpenAI-compatible 请求需要的形状。
       const textProjection = this.extractTextProjection(dto.input.parts);
       const fileIds = this.extractFileIds(dto);
+      // 加载供应商配置
       const platform = await this.modelProviderRegistry.resolveProvider(
         dto.runtime?.provider,
       );
+      // 加载模型配置
       const model = await this.modelProviderRegistry.resolveModel(
         platform,
         dto.runtime?.model,
         'llm',
       );
+      // 加载工具配置
       const requestedTools = this.toolRegistry.resolveRequestedTools(dto.runtime?.tools ?? []);
+      // 加载工具选择配置
       const requestedToolChoice = dto.runtime?.toolChoice;
+      // 检查工具选择是否合法
       if (
         requestedToolChoice
         && typeof requestedToolChoice === 'object'
@@ -85,6 +96,8 @@ export class StreamOrchestratorService {
         throw new BadRequestException(`toolChoice 指定了未启用工具：${requestedToolChoice.name}`);
       }
 
+      // 3. 创建或复用会话，并持久化用户消息和 assistant 占位消息。
+      // prepared 同时返回给 LLM 的上下文 messages，以及前端需要对账的真实 messageId。
       const prepared = await this.conversation.prepareSendMessage({
         userId: effectiveUserId,
         query: textProjection,
@@ -109,6 +122,7 @@ export class StreamOrchestratorService {
       };
       this.logger.log(`v2 流开始: session=${prepared.sessionId}, request=${requestId}`);
 
+      // 4. 先通知前端流已开始。前端收到 sessionId 后会把草稿会话迁移到真实会话。
       writer.write(
         'stream.started',
         {
@@ -141,7 +155,13 @@ export class StreamOrchestratorService {
         sessionId: prepared.sessionId,
         assistantMessageId: prepared.assistantMessageId,
       };
+      const streamScope = {
+        sessionId: prepared.sessionId,
+        messageId: prepared.assistantMessageId,
+      };
 
+      // message.created 是前端乐观消息的对账事件：
+      // 前端用 clientMessageId/requestId 找到临时 user/assistant 消息，再替换成这里的服务端快照。
       writer.write(
         'message.created',
         {
@@ -153,10 +173,7 @@ export class StreamOrchestratorService {
           assistantMessage: this.messageBuilder.createAssistantSnapshot(assistantState),
           clientMessageId: prepared.clientMessageId ?? dto.clientMessageId,
         },
-        {
-          sessionId: prepared.sessionId,
-          messageId: prepared.assistantMessageId,
-        },
+        streamScope,
       );
 
       if (prepared.isReplay) {
@@ -177,6 +194,7 @@ export class StreamOrchestratorService {
         return;
       }
 
+      // 5. 将会话上下文转换成 provider 请求。ChatRequestDto 是代理层使用的 OpenAI-compatible 形状。
       const requestDto = new ChatRequestDto();
       requestDto.platform = platform;
       requestDto.provider = platform;
@@ -190,7 +208,32 @@ export class StreamOrchestratorService {
       requestDto.reasoning = dto.runtime?.reasoning;
       requestDto.tools = requestedTools;
       requestDto.toolChoice = dto.runtime?.toolChoice;
+      const promptMessagesForUsage: ChatMessage[] = [...requestDto.messages];
 
+      const completedFileReads: CompletedFileReadPartInput[] = prepared.attachmentReadResults.map((result) => ({
+        fileId: result.fileId,
+        name: result.name,
+        ...(result.mimeType ? { mimeType: result.mimeType } : {}),
+        ...(result.tokenEstimate !== undefined ? { tokenEstimate: result.tokenEstimate } : {}),
+        status: result.status,
+        ...(result.reason ? { reason: result.reason } : {}),
+      }));
+
+      // 附件读取结果也以 message part 形式写给前端，让用户看到哪些文件进入了上下文。
+      completedFileReads.forEach((fileRead) => {
+        writer.write(
+          'message.part.started',
+          this.messageBuilder.startFileReadPart(assistantState, fileRead),
+          streamScope,
+        );
+        writer.write(
+          'message.part.completed',
+          this.messageBuilder.completeFileReadPart(assistantState, fileRead),
+          streamScope,
+        );
+      });
+
+      // 6. 连接上游模型。proxyChatStream 只返回原始 provider SSE 字节流，不做业务转换。
       failureStage = 'provider_connect';
       const upstream = await this.aiProxyService.proxyChatStream(requestDto);
       let finalContent = '';
@@ -202,14 +245,11 @@ export class StreamOrchestratorService {
       let finishReason: string | undefined;
       const reasoningEnabled = dto.runtime?.reasoning?.enabled !== false;
       const reasoningVisibility = this.resolveReasoningVisibility(dto.runtime?.reasoning?.display);
-      const streamScope = {
-        sessionId: prepared.sessionId,
-        messageId: prepared.assistantMessageId,
-      };
       const pendingToolCalls = new Map<number, PendingToolCall>();
       const completedToolCalls: CompletedToolCallPartInput[] = [];
       const completedToolResults: CompletedToolResultPartInput[] = [];
       const handleProviderEvent = (event): void => {
+        // 7. providerAdapter 已经把供应商私有 chunk 归一化，这里把内部事件转换成前端 message.part.*。
         if (event.type === 'reasoning.delta') {
           if (!reasoningEnabled) return;
 
@@ -223,12 +263,21 @@ export class StreamOrchestratorService {
           }
 
           if (event.field === 'text') {
-            // 原始 reasoning_content 只在用户显式选择 full 时进入前端和持久化。
             if (reasoningVisibility === 'full') {
+              // 原始 reasoning_content 只在用户显式选择 full 时写入 text 字段。
               finalReasoningText += event.delta;
               writer.write(
                 'message.part.delta',
                 this.messageBuilder.appendReasoningDelta(assistantState, event.delta, 'text'),
+                streamScope,
+              );
+            } else if (reasoningVisibility === 'summary') {
+              // DeepSeek 等 provider 只返回 reasoning_content、无独立 summary 字段时，
+              // 回退为 summary 流式展示，避免摘要模式下前端只能看到占位文案。
+              finalReasoningSummary += event.delta;
+              writer.write(
+                'message.part.delta',
+                this.messageBuilder.appendReasoningDelta(assistantState, event.delta, 'summary'),
                 streamScope,
               );
             }
@@ -252,6 +301,7 @@ export class StreamOrchestratorService {
         }
 
         if (event.type === 'text.delta') {
+          // 普通文本增量是最终回答正文：第一次增量前先创建 text part，之后持续追加 delta。
           if (!textPartStarted) {
             textPartStarted = true;
             writer.write('message.part.started', this.messageBuilder.startTextPart(assistantState), streamScope);
@@ -267,6 +317,8 @@ export class StreamOrchestratorService {
         }
 
         if (event.type === 'tool.call.delta') {
+          // 工具调用由模型分片生成，通常先到 toolCallId/name，再逐步到 arguments JSON 字符串。
+          // 因此这里按 index 暂存，等信息足够完整时再通知前端出现 tool_call part。
           const current: PendingToolCall = pendingToolCalls.get(event.index) ?? {
             index: event.index,
             argumentsText: '',
@@ -324,6 +376,7 @@ export class StreamOrchestratorService {
       };
 
       failureStage = 'provider_stream';
+      // 8. 消费上游第一轮流。for await 会随着上游 chunk 到达逐个 yield，前端因此能同步看到流式输出。
       for await (const event of this.providerAdapter.read(upstream)) {
         handleProviderEvent(event);
       }
@@ -338,6 +391,7 @@ export class StreamOrchestratorService {
         failureStage = 'tool_execution';
       }
 
+      // 9. 如果模型请求工具，先完成 tool_call part，再执行工具并写入 tool_result part。
       for (const pendingToolCall of validPendingToolCalls) {
         const tool = this.toolRegistry.findByName(pendingToolCall.toolName);
         const parsedArguments = this.parseToolArguments(pendingToolCall.argumentsText);
@@ -432,6 +486,8 @@ export class StreamOrchestratorService {
       }
 
       if (completedToolCalls.length) {
+        // 工具执行完成后，把 assistant tool_calls 和 tool 结果追加到上下文，再请求模型生成最终回答。
+        // 当前版本只做单轮工具闭环，第二轮如果继续返回 tool.call.delta 会被忽略。
         const followUpDto = new ChatRequestDto();
         followUpDto.platform = platform;
         followUpDto.provider = platform;
@@ -462,18 +518,19 @@ export class StreamOrchestratorService {
             content: this.serializeToolResultForModel(toolResult),
           })),
         ];
+        promptMessagesForUsage.push(...followUpDto.messages);
 
         failureStage = 'provider_connect';
         const followUpStream = await this.aiProxyService.proxyChatStream(followUpDto);
         failureStage = 'provider_stream';
         for await (const event of this.providerAdapter.read(followUpStream)) {
-          // 第一版只支持单轮工具调用，第二次请求不再携带 tools，若 provider 仍返回工具调用则忽略。
           if (event.type === 'tool.call.delta') continue;
           handleProviderEvent(event);
         }
       }
 
       if (!textPartStarted) {
+        // 上游可能只返回工具/思考或空内容，也要补一个 text part，保证最终 assistant 消息结构稳定。
         writer.write('message.part.started', this.messageBuilder.startTextPart(assistantState), streamScope);
       }
 
@@ -503,11 +560,26 @@ export class StreamOrchestratorService {
         assistantState,
         {
           content: finalContent,
+          fileReads: completedFileReads,
           reasoning: completedReasoning,
           toolCalls: completedToolCalls,
           toolResults: completedToolResults,
         },
       );
+      // 10. 构造完整 assistant 快照并持久化。前端已收到增量，但 message.completed 会作为最终权威版本对账。
+      const usage = this.estimateUsageSafely({
+        promptMessages: promptMessagesForUsage,
+        completionText: finalContent,
+        reasoningText: [
+          finalReasoningText,
+          finalReasoningSummary,
+          encryptedReasoningContent,
+        ].filter(Boolean).join('\n'),
+        toolArgumentsText: completedToolCalls
+          .map((toolCall) => toolCall.argumentsText)
+          .filter(Boolean)
+          .join('\n'),
+      });
       failureStage = 'persistence';
       await this.messageService.completeAssistantMessageV2({
         sessionId: prepared.sessionId,
@@ -516,9 +588,11 @@ export class StreamOrchestratorService {
         parts: completedMessage.parts,
         provider: platform,
         model,
+        ...(usage ? { usage } : {}),
       });
       await this.conversation.markRequestComplete(effectiveUserId, requestId);
 
+      // 11. 先发送完整消息快照，再发送 stream.completed 关闭前端 loading。
       writer.write(
         'message.completed',
         { message: completedMessage },
@@ -529,7 +603,10 @@ export class StreamOrchestratorService {
       );
       writer.write(
         'stream.completed',
-        { finishReason },
+        {
+          finishReason,
+          ...(usage ? { usage } : {}),
+        },
         {
           sessionId: prepared.sessionId,
           messageId: prepared.assistantMessageId,
@@ -541,6 +618,7 @@ export class StreamOrchestratorService {
       );
       this.endResponse(res);
     } catch (error) {
+      // 任何阶段异常都统一走 stream.failed，前端无需区分 provider_connect/provider_stream/persistence 的写法。
       await this.writeFailure({
         error,
         res,
@@ -633,6 +711,22 @@ export class StreamOrchestratorService {
     });
   }
 
+  private estimateUsageSafely(input: {
+    promptMessages: ChatMessage[];
+    completionText: string;
+    reasoningText?: string;
+    toolArgumentsText?: string;
+  }) {
+    try {
+      return this.tokenUsageEstimator.estimate(input);
+    } catch (error) {
+      this.logger.warn(
+        `token usage 估算失败: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return undefined;
+    }
+  }
+
   private async writeFailure(params: {
     error: unknown;
     res: Response;
@@ -670,20 +764,18 @@ export class StreamOrchestratorService {
         model: failureContext.model,
       }).catch((err) => {
         this.logger.warn(
-          `v2 失败消息持久化失败: message=${failureContext.assistantMessageId}, err=${
-            err instanceof Error ? err.message : String(err)
+          `v2 失败消息持久化失败: message=${failureContext.assistantMessageId}, err=${err instanceof Error ? err.message : String(err)
           }`,
         );
       });
     }
 
     this.logger.error(
-      `v2 流失败: request=${requestId}, session=${failureContext?.sessionId ?? 'n/a'}, message=${
-        failureContext?.assistantMessageId ?? 'n/a'
+      `v2 流失败: request=${requestId}, session=${failureContext?.sessionId ?? 'n/a'}, message=${failureContext?.assistantMessageId ?? 'n/a'
       }, stage=${stage}, code=${code}`,
       sanitized.logDetail,
     );
-    // v2 流建立后统一通过 stream.failed 承载错误，避免前端继续兼容 event:error/status:error/choices 错误块。
+    // v2 流建立后统一通过 stream.failed 承载错误，前端只需要消费标准事件信封。
     writer.write('stream.failed', {
       code,
       message,

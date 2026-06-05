@@ -109,12 +109,14 @@ export function normalizeStreamMessage(
   sessionId: string,
   fallback?: ChatMessage,
 ): ChatMessage {
+  // 流式消息的 parts 由 message.part.started/delta 事件渐进填充，不当创建合成 text part
+  // 占用 index 0，避免后续 file_read / reasoning 被 push 到 text 之后。
   return {
     id: snapshot.id,
     sessionId,
     role: normalizeRole(snapshot.role),
     content: snapshot.content,
-    parts: snapshot.parts.length ? snapshot.parts : createTextPartFromContent(snapshot),
+    parts: snapshot.parts,
     status: readMetadataStatus(snapshot.metadata) ?? toRuntimeStatus(snapshot.status),
     metadata: snapshot.metadata ?? fallback?.metadata ?? null,
     createdAt: snapshot.createdAt ? toIsoString(snapshot.createdAt) : fallback?.createdAt ?? new Date().toISOString(),

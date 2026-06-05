@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LocalFileStorage } from './storage/local-file.storage';
 import { TextFileParser } from './parser/text-file.parser';
 import { PdfParser } from './parser/pdf.parser';
-import { FileReaderPort, ReadableFileContent } from './file-reader.port';
+import { FileReaderPort, ReadableFileContent, UnavailableFileContent } from './file-reader.port';
 import { FileParser, ParsedFileContent } from './parser/file-parser.interface';
 import { ALLOWED_MIMES, ALLOWED_EXTENSIONS } from './dto/file-upload.dto';
 import { FileUploadVO, FileDetailVO } from './vo/file.upload.vo';
@@ -91,13 +91,13 @@ export class FileService implements FileReaderPort {
       ...(query.cursor ? { createdAt: { lt: new Date(query.cursor) } } : {}),
       ...(query.sessionId
         ? {
-            sessionLinks: {
-              some: {
-                sessionId: query.sessionId,
-                userId,
-              },
+          sessionLinks: {
+            some: {
+              sessionId: query.sessionId,
+              userId,
             },
-          }
+          },
+        }
         : {}),
     };
 
@@ -319,12 +319,14 @@ export class FileService implements FileReaderPort {
     userId: string,
   ): Promise<{
     readable: ReadableFileContent[];
-    unavailable: Array<{ fileId: string; reason: string }>;
+    unavailable: UnavailableFileContent[];
   }> {
     if (!fileIds.length) return { readable: [], unavailable: [] };
 
     const uniqueIds = Array.from(new Set(fileIds.filter(Boolean)));
+    // 查询文件记录
     const records = await this.fileDb.findMany({
+      // 条件：文件 ID 在有效文件 ID 中，文件未被删除，用户 ID 与查询用户 ID 匹配
       where: {
         id: { in: uniqueIds },
         isDeleted: false,
@@ -332,9 +334,9 @@ export class FileService implements FileReaderPort {
       },
     });
 
-    const resultMap = new Map(records.map((r) => [r.id, r] as const));
+    const resultMap = new Map(records.map((r) => [r.id, r] as const)); // 将文件记录 ID 与文件记录映射
     const readable: ReadableFileContent[] = [];
-    const unavailable: Array<{ fileId: string; reason: string }> = [];
+    const unavailable: UnavailableFileContent[] = [];
 
     for (const id of uniqueIds) {
       const record = resultMap.get(id);
@@ -344,7 +346,12 @@ export class FileService implements FileReaderPort {
       }
 
       if (record.status !== 'ready' || record.textContent == null) {
-        unavailable.push({ fileId: id, reason: '文件尚未解析成功，未进入本轮模型上下文' });
+        unavailable.push({
+          fileId: id,
+          name: record.name,
+          type: record.type,
+          reason: '文件尚未解析成功，未进入本轮模型上下文',
+        });
         continue;
       }
 

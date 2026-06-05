@@ -51,7 +51,7 @@ export function getFileDownloadUrl(id: string) {
 
 /**
  * 主聊天页文件上传入口。
- * 这里独立于 legacy v1 chat service，避免 /ai/chat 重新依赖旧流式协议。
+ * 文件上传与 v2 流式聊天请求解耦，发送消息时只传递文件 ID。
  */
 export async function uploadFile(file: File): Promise<{
   id: string;

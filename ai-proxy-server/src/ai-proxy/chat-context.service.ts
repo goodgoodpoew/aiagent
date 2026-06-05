@@ -21,6 +21,15 @@ export interface PrepareContextParams {
   clientMessageId?: string;
 }
 
+export interface AttachmentReadResult {
+  fileId: string;
+  name: string;
+  mimeType?: string;
+  tokenEstimate?: number;
+  status: 'done' | 'failed';
+  reason?: string;
+}
+
 /**
  * 构建附件上下文文本，注入到 LLM messages
  */
@@ -52,7 +61,7 @@ export class ChatContextService {
     private readonly sessionCache: SessionCacheService,
     private readonly fileService: FileService,
     private readonly sessionService: SessionService,
-  ) {}
+  ) { }
 
   private toCachedMessage(m: {
     id: string;
@@ -75,20 +84,57 @@ export class ChatContextService {
   async prepareContext(params: PrepareContextParams): Promise<{
     userMessageId: string;
     messages: Array<{ role: string; content: string }>;
+    attachmentReadResults: AttachmentReadResult[];
   }> {
+    // 解构出基本信息
     const { sessionId, userId, query, parts, fileIds, requestId, clientMessageId } = params;
 
     // 1. 读取本轮附件内容并构建上下文；历史会话文件不自动进入本轮模型上下文。
-    let attachmentContext = '';
-    let attachments: unknown = undefined;
-    let unavailableAttachments: unknown = undefined;
-    const effectiveFileIds = fileIds?.length ? fileIds : [];
-    let readableFileIds: string[] = [];
+    let attachmentContext = ''; // 附件上下文
+    let attachments: unknown = undefined; // 附件
+    let unavailableAttachments: unknown = undefined; // 不可用附件
+    const effectiveFileIds = fileIds?.length ? fileIds : []; // 有效文件 ID
+    let readableFileIds: string[] = []; // 可读文件 ID
+    const attachmentReadResults: AttachmentReadResult[] = []; // 附件读取结果
+    // 
+    const requestedFileMeta = new Map(
+      (parts ?? [])
+        .filter((part): part is Extract<MessagePart, { type: 'file' }> => part.type === 'file')
+        .map((part) => [part.fileId, part] as const),
+    );
 
     if (effectiveFileIds.length > 0) {
       const detail = await this.fileService.getReadableContentsDetailed(effectiveFileIds, userId);
       attachmentContext = buildAttachmentContext(detail.readable);
       readableFileIds = detail.readable.map((f) => f.fileId);
+
+      const readableById = new Map(detail.readable.map((file) => [file.fileId, file] as const));
+      const unavailableById = new Map(detail.unavailable.map((file) => [file.fileId, file] as const));
+      effectiveFileIds.forEach((fileId) => {
+        const readable = readableById.get(fileId);
+        if (readable) {
+          attachmentReadResults.push({
+            fileId: readable.fileId,
+            name: readable.name,
+            mimeType: readable.type,
+            tokenEstimate: readable.tokenEstimate,
+            status: 'done',
+          });
+          return;
+        }
+
+        const unavailable = unavailableById.get(fileId);
+        if (unavailable) {
+          const fallback = requestedFileMeta.get(unavailable.fileId);
+          attachmentReadResults.push({
+            fileId: unavailable.fileId,
+            name: unavailable.name ?? fallback?.name ?? unavailable.fileId,
+            mimeType: unavailable.type ?? fallback?.mimeType,
+            status: 'failed',
+            reason: unavailable.reason,
+          });
+        }
+      });
 
       attachments = detail.readable.map((f) => ({
         fileId: f.fileId,
@@ -196,6 +242,6 @@ export class ChatContextService {
       `会话 ${sessionId} 携带 ${messages.length} 条历史上送 LLM（原始 ${rawMessages.length} 条）`,
     );
 
-    return { userMessageId, messages };
+    return { userMessageId, messages, attachmentReadResults };
   }
 }

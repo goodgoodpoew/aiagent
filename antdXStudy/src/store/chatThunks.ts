@@ -206,6 +206,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
   const query = state.content.input.trim();
   if (!query || state.messages.streamingMessageId) return;
 
+  // 入口阶段：把输入框文本和已上传完成的附件统一组装成 v2 input.parts。
+  // 后端会先把 text parts 投影成给 LLM 的普通 messages，同时用 file parts 找到要读取的附件。
   const attachments = state.content.attachments;
   const readyAttachments = attachments.filter((a) => a.status === 'ready');
   const readyFileIds = readyAttachments.map((a) => a.id);
@@ -219,6 +221,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
     })),
   ];
 
+  // requestId 贯穿一次流式请求，用于把前端乐观 assistant 消息和后端真实消息对账。
+  // clientMessageId 只标识本次用户输入，后端回传 message.created 后用它替换本地临时 user 消息。
   const requestId = crypto.randomUUID?.() ?? createClientId('request');
   const clientMessageId = crypto.randomUUID?.() ?? createClientId('client-message');
   const originalSessionId = state.sessions.currentSessionId;
@@ -226,7 +230,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
   let userMessageId = createClientId('user');
   let assistantMessageId = createClientId('assistant');
 
-  // 说明：如果没有原始会话，则创建一个草稿会话
+  // 没有当前会话时先创建一个前端草稿会话，让用户刚点发送就能看到消息落在列表里。
+  // 等后端真正创建 session 后，syncSession 会把 draft-* 替换成服务端 sessionId。
   if (!originalSessionId) {
     dispatch(setCurrentSessionId(draftSessionId));
     dispatch(upsertSession(normalizeSession({
@@ -238,7 +243,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
       updatedAt: new Date().toISOString(),
     })));
   }
-  // 说明：添加用户消息到会话
+
+  // 乐观渲染用户消息：请求还没到后端，Bubble.List 先展示用户刚发送的内容。
   dispatch(appendMessage({
     message: createLocalMessage({
       id: userMessageId,
@@ -260,7 +266,9 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
     }),
     status: 'sending',
   }));
-  // 创建一个等待中的回复消息
+
+  // 同时创建一个空的 assistant 占位消息。后续 message.part.delta 到来时，
+  // reducer 会不断把增量文本拼到这条消息的 parts/content 上，形成流式输出效果。
   dispatch(appendMessage({
     message: createLocalMessage({
       id: assistantMessageId,
@@ -271,7 +279,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
     }),
     status: 'streaming',
   }));
-  // 说明：清除输入和附件
+
+  // 本地消息已经保存了文本和附件元数据，可以清空输入区，避免用户重复提交。
   dispatch(clearInput());
   dispatch(clearAttachments());
 
@@ -288,9 +297,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
   }) => {
     const sessionId = payload.sessionId;
     if (resolvedSessionId === sessionId) {
-      // 获取当前会话实体
       const current = getState().sessions.entities[sessionId];
-      // 说明：如果当前会话实体存在，则更新会话实体
+      // 同一个 session 后续可能只补充 title/version 等元信息，这里只做轻量更新。
       if (current && (payload.title !== undefined || payload.version !== undefined)) {
         dispatch(upsertSession(normalizeSession({
           ...current,
@@ -303,15 +311,12 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
       }
       return;
     }
-    // 说明：如果当前会话实体不存在，则创建一个新会话
+
+    // 后端返回了真实 sessionId：把草稿会话和两条乐观消息迁移到服务端会话下。
     const oldSessionId = resolvedSessionId ?? draftSessionId;
-    // 说明：设置当前会话 ID
     resolvedSessionId = sessionId;
-    // 说明：设置当前会话 ID
     dispatch(setCurrentSessionId(sessionId));
-    // 说明：替换用户消息的会话 ID
     dispatch(replaceMessageSessionId({ messageId: userMessageId, oldSessionId, nextSessionId: sessionId }));
-    // 说明：替换回复消息的会话 ID
     dispatch(replaceMessageSessionId({ messageId: assistantMessageId, oldSessionId, nextSessionId: sessionId }));
     const existing = getState().sessions.entities[sessionId];
     const nextSession = normalizeSession({
@@ -333,6 +338,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
 
   try {
     const handleStreamEvent = (event: StreamEventEnvelope) => {
+      // 所有后端 SSE 都是 StreamEventEnvelope；sessionId/messageId 在 envelope 顶层，
+      // data 里才是该事件自己的负载。先同步 session，再把事件交给 messageStore 更新消息。
       if (event.sessionId) {
         syncSession({ sessionId: event.sessionId });
       }
@@ -352,6 +359,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
       dispatch(applyStreamEvent(event));
 
       if (event.type === 'message.created') {
+        // message.created 是“临时 ID -> 服务端真实 ID”的交接点。
+        // 之后 stream.failed 或最终 done 都必须使用真实 assistantMessageId。
         const data = event.data as MessageCreatedData;
         userMessageId = data.userMessage.id;
         assistantMessageId = data.assistantMessage.id;
@@ -383,7 +392,8 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
         requestId,
         clientMessageId,
         context: readyFileIds.length ? { fileIds: readyFileIds } : undefined,
-        // 主聊天页从这里开始只发送 v2 协议，provider 原始 chunk 由后端转换为 message.part.*。
+        // 主聊天页从这里开始只发送 v2 协议；provider 原始 chunk 由后端统一转换为 message.part.*。
+        // 这样前端只关心“消息部件如何变化”，不用适配 OpenAI/DeepSeek 等供应商的私有字段。
         runtime: {
           provider: state.content.provider,
           model: state.content.model,
@@ -400,11 +410,14 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
       },
     );
 
+    // sendChatStreamV2 resolve 表示 HTTP 字节流已经结束。失败事件会提前把 streamFailed 置 true，
+    // 正常结束则把用户消息和 assistant 消息都收口到 done。
     dispatch(setMessageStatus({ messageId: userMessageId, status: 'done' }));
     if (!streamFailed) {
       dispatch(setMessageStatus({ messageId: assistantMessageId, status: 'done' }));
     }
   } catch (error) {
+    // 网络错误、JSON 解析错误等没有进入标准 stream.failed 的客户端异常，落到本地 assistant 占位消息。
     const message = getErrorMessage(error, '请求失败，请稍后重试');
     dispatch(setMessageStatus({ messageId: userMessageId, status: 'done' }));
     dispatch(markMessageFailed({

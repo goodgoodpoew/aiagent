@@ -1,18 +1,8 @@
 import { history, Outlet, useLocation } from '@umijs/max';
 import { Layout, Menu } from 'antd';
 import {
-  AppstoreOutlined,
   MessageOutlined,
-  CommentOutlined,
-  SmileOutlined,
-  BulbOutlined,
-  LoadingOutlined,
-  StarOutlined,
-  SendOutlined,
-  FileMarkdownOutlined,
   ApiOutlined,
-  CreditCardOutlined,
-  ThunderboltOutlined,
   DatabaseOutlined,
   FileOutlined,
 } from '@ant-design/icons';
@@ -20,31 +10,6 @@ import {
 const { Sider, Content } = Layout;
 
 const menuItems = [
-  // {
-  //   key: 'example',
-  //   icon: <AppstoreOutlined />,
-  //   label: '示例',
-  //   children: [
-  //     { key: '/chat', icon: <MessageOutlined />, label: 'Chat 聊天' },
-  //     { key: '/bubble', icon: <CommentOutlined />, label: 'Bubble 气泡' },
-  //     { key: '/welcome', icon: <SmileOutlined />, label: 'Welcome 欢迎' },
-  //     { key: '/prompt', icon: <BulbOutlined />, label: 'Prompt 提示' },
-  //     { key: '/think', icon: <LoadingOutlined />, label: 'Think 思考' },
-  //     { key: '/suggestion', icon: <StarOutlined />, label: 'Suggestion 建议' },
-  //     { key: '/sender', icon: <SendOutlined />, label: 'Sender 发送' },
-  //   ],
-  // },
-  // {
-  //   key: 'extension',
-  //   icon: <ApiOutlined />,
-  //   label: '扩展',
-  //   children: [
-  //     { key: '/markdown', icon: <FileMarkdownOutlined />, label: 'X Markdown' },
-  //     { key: '/sdk', icon: <ApiOutlined />, label: 'X SDK' },
-  //     { key: '/card', icon: <CreditCardOutlined />, label: 'X Card' },
-  //     { key: '/skill', icon: <ThunderboltOutlined />, label: 'X Skill' },
-  //   ],
-  // },
   {
     key: 'ai',
     icon: <ApiOutlined />,
@@ -81,7 +46,7 @@ export default function MainLayout() {
         </div>
         <Menu
           mode="inline"
-          defaultOpenKeys={['example', 'extension', 'ai']}
+          defaultOpenKeys={['ai']}
           selectedKeys={[pathname]}
           items={menuItems}
           onSelect={({ key }) => {

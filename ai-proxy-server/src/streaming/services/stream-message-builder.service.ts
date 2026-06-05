@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MESSAGE_PROTOCOL_V2 } from '@/message/dto/create-message.dto';
 import type {
   MessagePart,
+  FileReadMessagePart,
   ReasoningMessagePart,
   TextMessagePart,
   ToolCallMessagePart,
@@ -43,8 +44,19 @@ export interface CompletedToolResultPartInput {
   status: ToolResultMessagePart['status'];
 }
 
+export interface CompletedFileReadPartInput {
+  fileId: string;
+  name: string;
+  mimeType?: string;
+  tokenEstimate?: number;
+  status: Extract<FileReadMessagePart['status'], 'done' | 'failed'>;
+  reason?: string;
+}
+
 @Injectable()
 export class StreamMessageBuilderService {
+  // builder 只负责把后端内部状态转换为前端协议里的 message snapshot / message part payload。
+  // 它不写 SSE、不访问数据库，保证同一个 part id 在 started/delta/completed 三个阶段保持一致。
   createAssistantSnapshot(state: StreamMessageBuilderState): StreamMessageSnapshot {
     return {
       id: state.assistantMessageId,
@@ -221,16 +233,54 @@ export class StreamMessageBuilderService {
     };
   }
 
+  startFileReadPart(
+    state: StreamMessageBuilderState,
+    input: Pick<CompletedFileReadPartInput, 'fileId' | 'name' | 'mimeType'>,
+  ): MessagePartStartedData {
+    return {
+      part: {
+        id: this.fileReadPartId(state.assistantMessageId, input.fileId),
+        type: 'file_read',
+        fileId: input.fileId,
+        name: input.name,
+        ...(input.mimeType ? { mimeType: input.mimeType } : {}),
+        status: 'streaming',
+      },
+    };
+  }
+
+  completeFileReadPart(
+    state: StreamMessageBuilderState,
+    input: CompletedFileReadPartInput,
+  ): MessagePartCompletedData {
+    return {
+      partId: this.fileReadPartId(state.assistantMessageId, input.fileId),
+      type: 'file_read',
+      status: input.status,
+      fileId: input.fileId,
+      name: input.name,
+      ...(input.mimeType ? { mimeType: input.mimeType } : {}),
+      ...(input.tokenEstimate !== undefined ? { tokenEstimate: input.tokenEstimate } : {}),
+      ...(input.reason ? { reason: input.reason } : {}),
+    };
+  }
+
   buildCompletedAssistantMessage(
     state: StreamMessageBuilderState,
     params: {
       content: string;
+      fileReads?: CompletedFileReadPartInput[];
       reasoning?: CompletedReasoningPartInput;
       toolCalls?: CompletedToolCallPartInput[];
       toolResults?: CompletedToolResultPartInput[];
     },
   ): StreamMessageSnapshot {
+    // 完整快照用于 message.completed 和最终持久化：
+    // 前面流式阶段已经逐步发过 part 事件，这里重新组装一次权威版本，方便前端覆盖本地累积结果。
     const parts: MessagePart[] = [];
+    params.fileReads?.forEach((fileRead) => {
+      parts.push(this.buildFileReadPart(state, fileRead));
+    });
     const reasoningPart = params.reasoning ? this.buildReasoningPart(state, params.reasoning) : undefined;
     if (reasoningPart) {
       parts.push(reasoningPart);
@@ -248,6 +298,7 @@ export class StreamMessageBuilderService {
       text: params.content,
       status: 'done',
     };
+    // text part 放在最后，展示时仍由前端按 parts 顺序渲染；辅助过程先出现，最终回答收尾。
     parts.push(textPart);
 
     return {
@@ -277,6 +328,26 @@ export class StreamMessageBuilderService {
 
   private toolResultPartId(messageId: string, toolCallId: string): string {
     return `${messageId}:tool-result:${toolCallId}`;
+  }
+
+  private fileReadPartId(messageId: string, fileId: string): string {
+    return `${messageId}:file-read:${fileId}`;
+  }
+
+  private buildFileReadPart(
+    state: StreamMessageBuilderState,
+    input: CompletedFileReadPartInput,
+  ): FileReadMessagePart {
+    return {
+      id: this.fileReadPartId(state.assistantMessageId, input.fileId),
+      type: 'file_read',
+      fileId: input.fileId,
+      name: input.name,
+      ...(input.mimeType ? { mimeType: input.mimeType } : {}),
+      ...(input.tokenEstimate !== undefined ? { tokenEstimate: input.tokenEstimate } : {}),
+      status: input.status,
+      ...(input.reason ? { reason: input.reason } : {}),
+    };
   }
 
   private buildReasoningPart(

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { Prisma } from '@prisma/client';
-import { ChatContextService } from '../ai-proxy/chat-context.service';
+import { ChatContextService, type AttachmentReadResult } from '../ai-proxy/chat-context.service';
 import { SessionTitleQueueService } from '../ai-proxy/session-title-queue.service';
 import { MessageService } from '../message/message.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -43,6 +43,7 @@ export interface PreparedSendMessage {
   isReplay: boolean;
   requestStatus: string;
   llmMessages: Array<{ role: string; content: string }>;
+  attachmentReadResults: AttachmentReadResult[];
 }
 
 @Injectable()
@@ -56,20 +57,41 @@ export class ConversationApplicationService {
     private readonly chatContext: ChatContextService,
     private readonly sessionEventService: SessionEventService,
     private readonly sessionTitleQueue: SessionTitleQueueService,
-  ) {}
+  ) { }
 
+  /**
+   * 准备发送消息
+   * @param params 
+   * @returns {
+   *   sessionId: string;
+   *   userMessageId: string;
+   *   assistantMessageId: string;
+   *   requestId: string;
+   *   clientMessageId?: string;
+   *   userMessageParts?: MessagePart[];
+   *   session?: { title: string | null; titleStatus: string; version: number; createdAt: string; updatedAt: string; };
+   *   isNewSession: boolean;
+   *   isReplay: boolean;
+   *   requestStatus: string;
+   *   llmMessages: Array<{ role: string; content: string }>;
+   *   attachmentReadResults: AttachmentReadResult[];
+   * }
+   */
   async prepareSendMessage(params: PrepareSendMessageParams): Promise<PreparedSendMessage> {
+    // 生成请求 ID
     const requestId = params.requestId || crypto.randomUUID();
 
+    // 检查是否存在相同的请求
     const existingRequest = await this.prisma.chatRequest.findUnique({
       where: {
+        // 唯一索引：用户 ID 和请求 ID
         userId_requestId: {
           userId: params.userId,
           requestId,
         },
       },
     });
-
+    // 如果存在相同的请求，则直接返回
     if (existingRequest) {
       await this.sessionService.findOneFresh(existingRequest.sessionId, params.userId);
       return {
@@ -83,10 +105,12 @@ export class ConversationApplicationService {
         isReplay: true,
         requestStatus: existingRequest.status,
         llmMessages: [],
+        attachmentReadResults: [],
       };
     }
+    // 如果不存在会话，则需要新建会话
 
-    const fallbackTitle = params.query.slice(0, 30);
+    const fallbackTitle = params.query.slice(0, 30); // 临时会话标题
     const { session, isNewSession } = await this.sessionService.confirmOrCreateForChat(
       params.userId,
       params.sessionId,
@@ -94,13 +118,13 @@ export class ConversationApplicationService {
       { titleStatus: params.autoGenerateSessionName ? 'pending' : 'manual' },
     );
 
-    const userMessageId = crypto.randomUUID();
-    const assistantMessageId = crypto.randomUUID();
-    const userMessageParts = params.inputParts?.length
-      ? this.createUserMessageParts(userMessageId, params.inputParts)
+    const userMessageId = crypto.randomUUID(); // 生成用户消息 ID
+    const assistantMessageId = crypto.randomUUID(); // 生成助手消息 ID
+    const userMessageParts = params.inputParts?.length // 如果存在用户消息部分，则创建用户消息部分
+      ? this.createUserMessageParts(userMessageId, params.inputParts) // 创建用户消息部分
       : undefined;
-
-    const { messages: llmMessages } = await this.chatContext.prepareContext({
+    // 准备上下文
+    const { messages: llmMessages, attachmentReadResults } = await this.chatContext.prepareContext({
       sessionId: session.id,
       userId: params.userId,
       query: params.query,
@@ -201,6 +225,7 @@ export class ConversationApplicationService {
       isReplay: false,
       requestStatus: 'streaming',
       llmMessages,
+      attachmentReadResults,
     };
   }
 
@@ -231,12 +256,17 @@ export class ConversationApplicationService {
       throw err;
     }
   }
-
+  /**
+   * 创建用户消息部分
+   * @param messageId 
+   * @param parts 
+   * @returns 
+   */
   private createUserMessageParts(messageId: string, parts: UserMessagePart[]): MessagePart[] {
     return parts
       .map((part, index): MessagePart | undefined => {
-        const id = `${messageId}:${part.type}:${index}`;
-        if (part.type === 'text') {
+        const id = `${messageId}:${part.type}:${index}`; // 生成消息部分 ID
+        if (part.type === 'text') { // 如果消息部分类型为文本，则创建文本消息部分
           return {
             id,
             type: 'text',
@@ -244,7 +274,7 @@ export class ConversationApplicationService {
             status: 'done',
           };
         }
-        if (part.type === 'file' || part.type === 'image') {
+        if (part.type === 'file' || part.type === 'image') { // 如果消息部分类型为文件或图片，则创建文件消息部分
           return {
             id,
             type: 'file',
@@ -253,7 +283,7 @@ export class ConversationApplicationService {
             mimeType: part.mimeType,
           };
         }
-        if (part.type === 'resource') {
+        if (part.type === 'resource') { // 如果消息部分类型为资源，则创建资源消息部分
           return {
             id,
             type: 'reference',

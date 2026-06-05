@@ -3,6 +3,7 @@ import type { ChatMessage, MessageRuntimeStatus } from '../types';
 import { getMessageTextProjection, normalizeStreamMessage } from '../adapters/messageAdapter';
 import type {
   ErrorMessagePart,
+  FileReadMessagePart,
   MessageCompletedData,
   MessageCreatedData,
   ReasoningMessagePart,
@@ -276,6 +277,7 @@ const messageSlice = createSlice({
     },
     applyStreamEvent(state, action: PayloadAction<StreamEventEnvelope>) {
       const event = action.payload;
+      // SSE 在网络抖动或重试场景下可能重复送达同一事件，event.id 是幂等保护。
       if (state.processedStreamEventIds[event.id]) return;
       state.processedStreamEventIds[event.id] = true;
 
@@ -297,7 +299,8 @@ const messageSlice = createSlice({
           oldAssistantMessageId ? state.entities[oldAssistantMessageId] : undefined,
         );
 
-        // message.created 是乐观消息和服务端真实 ID 的对账点。
+        // message.created 是乐观消息和服务端真实 ID 的对账点：
+        // 前端先用临时 ID 渲染，后端创建数据库消息后回传快照，这里保留原展示位置并替换 ID。
         replaceOrUpsertMessage(state, oldUserMessageId, userMessage, 'done');
         replaceOrUpsertMessage(state, oldAssistantMessageId, assistantMessage, 'streaming');
         state.streamingMessageId = assistantMessage.id;
@@ -305,6 +308,8 @@ const messageSlice = createSlice({
       }
 
       if (event.type === 'message.part.started') {
+        // part.started 表示 assistant 消息里出现了一个结构化部件：
+        // 可能是正文 text、思考 reasoning、工具调用、工具结果或附件读取状态。
         const data = event.data as MessagePartStartedData;
         if (!event.messageId || !event.sessionId) return;
         const message = ensureAssistantMessage(state, {
@@ -322,6 +327,8 @@ const messageSlice = createSlice({
       }
 
       if (event.type === 'message.part.delta') {
+        // part.delta 是流式输出的核心：后端每收到一小段 provider 增量，
+        // 就转成某个 part 的 delta，前端在这里把它追加到对应 part 上。
         const data = event.data as MessagePartDeltaData;
         if (!event.messageId || !event.sessionId) return;
         const message = ensureAssistantMessage(state, {
@@ -357,6 +364,7 @@ const messageSlice = createSlice({
           message.parts.push(part);
         }
         if (part?.type === 'text') {
+          // text part 的投影会同步写入 message.content，供 Bubble.List 和旧展示逻辑读取。
           part.text += data.delta;
           part.status = 'streaming';
           projectTextParts(message);
@@ -384,6 +392,8 @@ const messageSlice = createSlice({
       }
 
       if (event.type === 'message.part.completed') {
+        // part.completed 是单个部件的收口点：用后端最终值覆盖本地增量累积结果，
+        // 可以修正丢 chunk、工具参数解析、附件读取失败等中间态。
         const data = event.data as MessagePartCompletedData;
         if (!event.messageId || !event.sessionId) return;
         const message = ensureAssistantMessage(state, {
@@ -431,14 +441,33 @@ const messageSlice = createSlice({
           }
           part.status = data.status;
         }
+        if (part?.type === 'file_read') {
+          const fileReadPart = part as FileReadMessagePart;
+          if (data.name !== undefined) {
+            fileReadPart.name = data.name;
+          }
+          if (data.mimeType !== undefined) {
+            fileReadPart.mimeType = data.mimeType;
+          }
+          if (data.tokenEstimate !== undefined) {
+            fileReadPart.tokenEstimate = data.tokenEstimate;
+          }
+          if (data.reason !== undefined) {
+            fileReadPart.reason = data.reason;
+          }
+          fileReadPart.status = data.status;
+        }
         const failedMessagePart = data.status === 'failed'
           && data.type !== 'tool_call'
-          && data.type !== 'tool_result';
+          && data.type !== 'tool_result'
+          && data.type !== 'file_read';
         state.statusByMessageId[event.messageId] = failedMessagePart ? 'failed' : 'streaming';
         return;
       }
 
       if (event.type === 'message.completed') {
+        // message.completed 携带完整 assistant 快照，是整条消息的最终权威版本。
+        // 本地累积的 parts/content 会被快照覆盖，保证刷新后和数据库内容一致。
         const data = event.data as MessageCompletedData;
         if (!event.sessionId) return;
         const message = normalizeStreamMessage(data.message, event.sessionId, state.entities[data.message.id]);
@@ -450,6 +479,8 @@ const messageSlice = createSlice({
       }
 
       if (event.type === 'stream.completed') {
+        // stream.completed 表示本次 SSE 会话正常结束；此时可以关闭 loading/streaming 状态。
+        // 具体消息内容已经由 message.completed 或前面的 part 事件写入。
         if (event.messageId) {
           state.statusByMessageId[event.messageId] = 'done';
         }
@@ -460,6 +491,8 @@ const messageSlice = createSlice({
       }
 
       if (event.type === 'stream.failed') {
+        // stream.failed 是流式链路的统一失败出口。后端会尽量携带 messageId，
+        // 前端把错误写成 error part，让气泡内只出现一份失败提示。
         const data = readStreamFailureData(event.data as StreamFailedData | { error?: StreamFailedData });
         if (event.messageId) {
           applyFailedMessage(state, {

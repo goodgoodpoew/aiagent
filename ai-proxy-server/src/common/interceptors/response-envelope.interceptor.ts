@@ -85,6 +85,6 @@ export class ResponseEnvelopeInterceptor implements NestInterceptor {
 
   private shouldSkipByPath(req: RequestWithId): boolean {
     const path = req.originalUrl || req.url;
-    return path.includes('/api/ai/chat/stream') || path.includes('/download');
+    return path.includes('/api/ai/chat/stream/v2') || path.includes('/download');
   }
 }

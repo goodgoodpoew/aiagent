@@ -148,7 +148,9 @@ export class AiProxyService {
   }
 
   /**
-   * 流式聊天请求代理 - 返回 ReadableStream 用于 SSE
+   * 流式聊天请求代理 - 只负责连接上游并返回原始 Node stream。
+   * 注意：这里不解析 provider SSE，也不写给前端；协议归一化由 OpenAiCompatibleStreamAdapter
+   * 和 StreamOrchestratorService 完成，避免代理层同时承担网络和业务编排。
    */
   async proxyChatStream(dto: ChatRequestDto) {
     const resolved = await this.getProviderConfig(dto);
@@ -166,6 +168,7 @@ export class AiProxyService {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${apiKey}`,
             },
+            // responseType: 'stream' 让 axios 不等待完整回答，而是把上游 SSE 字节流原样交给后续编排层。
             responseType: 'stream',
           },
         ),

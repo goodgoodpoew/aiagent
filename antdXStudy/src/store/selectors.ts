@@ -34,7 +34,8 @@ export const selectCurrentMessages = createSelector(
 
 export const selectBubbleItems = createSelector(
   [selectCurrentMessages, selectMessageStatusById],
-  // selector 是页面展示结构的唯一出口，避免组件里反复把领域消息转换成 Bubble.List items。
+  // selector 是“Redux 领域消息 -> Ant Design X Bubble.List items”的唯一出口。
+  // content 保留完整 ChatMessage，真正的正文/思考/工具展示交给 MessagePartsRenderer 分流处理。
   (messages, statusByMessageId): ChatBubbleItem[] => messages.map((message) => {
     const projectedContent = getMessageTextProjection(message);
     return {

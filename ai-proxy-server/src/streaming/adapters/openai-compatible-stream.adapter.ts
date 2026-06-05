@@ -9,12 +9,16 @@ import {
 export class OpenAiCompatibleStreamAdapter implements ProviderStreamAdapter {
   private readonly logger = new Logger(OpenAiCompatibleStreamAdapter.name);
 
+  // adapter 的职责只到“归一化 provider 私有 SSE”：
+  // OpenAI-compatible chunk 里的 delta.content、reasoning_content、tool_calls
+  // 会被转换成 text.delta/reasoning.delta/tool.call.delta/done，供 orchestrator 再包装为前端 v2 事件。
   async *read(upstream: IncomingMessage): AsyncIterable<ProviderStreamEvent> {
     let buffer = '';
     let doneEmitted = false;
 
     for await (const chunk of upstream) {
       buffer += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+      // 上游同样按 SSE 空行分隔事件；最后一个半截事件先留在 buffer，等下一块 chunk 补齐。
       const events = buffer.split('\n\n');
       buffer = events.pop() ?? '';
 
@@ -67,10 +71,12 @@ export class OpenAiCompatibleStreamAdapter implements ProviderStreamAdapter {
       const finishReason = choice?.finish_reason;
       const normalizedEvents: ProviderStreamEvent[] = [];
 
+      // 普通回答文本：provider 给的是增量 delta，后续 orchestrator 会累积成 finalContent。
       if (typeof delta === 'string' && delta.length > 0) {
         normalizedEvents.push({ type: 'text.delta', delta });
       }
 
+      // 工具调用参数通常也是流式 JSON 字符串，先按原文增量吐出，等完成后再解析。
       if (Array.isArray(deltaPayload.tool_calls)) {
         deltaPayload.tool_calls.forEach((toolCall: unknown) => {
           const item = toolCall as {
@@ -103,6 +109,7 @@ export class OpenAiCompatibleStreamAdapter implements ProviderStreamAdapter {
       this.appendReasoningDelta(normalizedEvents, messagePayload.encrypted_content, 'encryptedContent');
 
       if (finishReason) {
+        // finish_reason 说明 provider 本轮输出结束，统一转成 done 事件给 orchestrator 收口。
         normalizedEvents.push({ type: 'done', finishReason });
       }
 

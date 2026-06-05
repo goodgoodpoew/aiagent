@@ -95,6 +95,11 @@ export interface MessagePartCompletedData {
   partId: string;
   type: MessagePart['type'];
   status: 'done' | 'failed';
+  fileId?: string;
+  name?: string;
+  mimeType?: string;
+  tokenEstimate?: number;
+  reason?: string;
   text?: string;
   summary?: string;
   encryptedContent?: string;
@@ -145,11 +150,14 @@ export interface UsageUpdatedData {
     promptTokens?: number;
     completionTokens?: number;
     totalTokens?: number;
+    source?: 'estimated' | 'provider';
+    strategy?: string;
   };
 }
 
 export interface StreamCompletedData {
   finishReason?: string;
+  usage?: UsageUpdatedData['usage'];
 }
 
 export type StreamFailureStage =

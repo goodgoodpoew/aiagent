@@ -18,7 +18,7 @@ export class SessionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sessionCache: SessionCacheService,
-  ) {}
+  ) { }
 
   private get uploadedFileDb(): FileDbDelegate {
     return (this.prisma as unknown as { uploadedFile: FileDbDelegate }).uploadedFile;
@@ -103,7 +103,13 @@ export class SessionService {
     return session;
   }
 
-  async findOneFresh(id: string, userId: string) {
+  /**
+   * 查找最新会话
+   * @param id 会话 ID
+   * @param userId 用户 ID
+   * @returns 会话
+   */
+  async findOneFresh(id: string, userId: string): Promise<Session> {
     const session = await this.prisma.session.findFirst({
       where: { id, userId, isDeleted: false },
     });
@@ -330,23 +336,23 @@ export class SessionService {
     title: string,
     options?: { titleStatus?: 'pending' | 'manual' },
   ): Promise<{ session: Session; isNewSession: boolean }> {
-    if (sessionId) {
-      const session = await this.findOneFresh(sessionId, userId);
-      this.logger.debug(`确认已有会话: ${sessionId}`);
-      return { session, isNewSession: false };
+    if (sessionId) { // 如果存在会话 ID，则直接查找会话
+      const session = await this.findOneFresh(sessionId, userId); // 查找会话
+      this.logger.debug(`确认已有会话: ${sessionId}`); // 记录日志
+      return { session, isNewSession: false }; // 返回会话和是否是新会话
     }
 
-    const sId = crypto.randomUUID();
-    const session = await this.create(
+    const sId = crypto.randomUUID(); // 生成新的会话 ID
+    const session = await this.create( // 创建新会话
       userId,
       { title },
       sId,
       { titleStatus: options?.titleStatus ?? 'manual' },
     );
-    await this.cacheSessionSnapshot(session);
-    this.logger.log(`聊天主链创建新会话: ${sId}`);
+    await this.cacheSessionSnapshot(session); // 缓存会话快照
+    this.logger.log(`聊天主链创建新会话: ${sId}`); // 记录日志
 
-    return { session, isNewSession: true };
+    return { session, isNewSession: true }; // 返回会话和是否是新会话
   }
 
   /**

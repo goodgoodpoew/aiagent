@@ -12,7 +12,7 @@ export type AiPlatform = string;
 export interface ChatMessage {
   role: string;
   content: string;
-  /** content 是兼容文本投影；parts 为 v2 结构化消息预留，当前不改变 v1 请求处理。 */
+  /** content 是给 OpenAI-compatible provider 的文本投影；parts 保留 v2 结构化消息。 */
   parts?: MessagePart[];
   tool_call_id?: string;
   tool_calls?: Array<{

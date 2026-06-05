@@ -105,6 +105,7 @@ export type MessagePart =
   | ReasoningMessagePart
   | ToolCallMessagePart
   | ToolResultMessagePart
+  | FileReadMessagePart
   | FileMessagePart
   | ReferenceMessagePart
   | ErrorMessagePart;
@@ -148,6 +149,17 @@ export interface ToolResultMessagePart {
     message: string;
   };
   status: MessagePartStatus;
+}
+
+export interface FileReadMessagePart {
+  id: string;
+  type: 'file_read';
+  fileId: string;
+  name: string;
+  mimeType?: string;
+  tokenEstimate?: number;
+  status: MessagePartStatus;
+  reason?: string;
 }
 
 export interface FileMessagePart {
@@ -265,6 +277,11 @@ export interface MessagePartCompletedData {
   partId: string;
   type: MessagePart['type'];
   status: 'done' | 'failed';
+  fileId?: string;
+  name?: string;
+  mimeType?: string;
+  tokenEstimate?: number;
+  reason?: string;
   text?: string;
   summary?: string;
   encryptedContent?: string;

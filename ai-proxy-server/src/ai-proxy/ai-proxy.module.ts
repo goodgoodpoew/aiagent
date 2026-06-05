@@ -6,6 +6,7 @@ import { AiProxyService } from './ai-proxy.service';
 import { ChatContextService } from './chat-context.service';
 import { StreamCompletionService } from './stream-completion.service';
 import { SessionTitleQueueService } from './session-title-queue.service';
+import { TokenUsageEstimatorService } from './token-usage-estimator.service';
 import { SessionTitleProcessor } from './processors/session-title.processor';
 import { SessionModule } from '@/session/session.module';
 import { MessageModule } from '../message/message.module';
@@ -46,6 +47,7 @@ import { ConversationApplicationService } from '../conversation/conversation-app
     StreamMessageBuilderService,
     StreamOrchestratorService,
     SessionTitleQueueService,
+    TokenUsageEstimatorService,
     ConversationApplicationService,
     SessionTitleProcessor,
     LoggingFailureSink,
@@ -62,6 +64,6 @@ import { ConversationApplicationService } from '../conversation/conversation-app
     },
     StreamFailureCoordinator,
   ],
-  exports: [AiProxyService, StreamFailureCoordinator],
+  exports: [AiProxyService, StreamFailureCoordinator, TokenUsageEstimatorService],
 })
 export class AiProxyModule {}

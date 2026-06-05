@@ -9,6 +9,13 @@ export interface ReadableFileContent {
   tokenEstimate?: number;
 }
 
+export interface UnavailableFileContent {
+  fileId: string;
+  name?: string;
+  type?: string;
+  reason: string;
+}
+
 /**
  * 文件读取端口
  *

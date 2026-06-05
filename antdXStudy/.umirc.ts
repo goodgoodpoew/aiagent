@@ -19,7 +19,6 @@ export default defineConfig({
       title: '示例',
       routes: [
         { path: '', redirect: '/ai/chat' },
-        { path: '/chat', component: '@/pages/example/chat', title: 'Chat 聊天 legacy v1 示例' },
         { path: '/bubble', component: '@/pages/example/bubble', title: 'Bubble 气泡' },
         { path: '/welcome', component: '@/pages/example/welcome', title: 'Welcome 欢迎' },
         { path: '/prompt', component: '@/pages/example/prompt', title: 'Prompt 提示' },
@@ -27,7 +26,6 @@ export default defineConfig({
         { path: '/suggestion', component: '@/pages/example/suggestion', title: 'Suggestion 建议' },
         { path: '/sender', component: '@/pages/example/sender', title: 'Sender 发送' },
         { path: '/markdown', component: '@/pages/example/markdown', title: 'X Markdown' },
-        { path: '/sdk', component: '@/pages/example/sdk', title: 'X SDK' },
         { path: '/card', component: '@/pages/example/card', title: 'X Card' },
         { path: '/skill', component: '@/pages/example/skill', title: 'X Skill' },
       ],
