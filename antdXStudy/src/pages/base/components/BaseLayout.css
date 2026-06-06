@@ -1,0 +1,33 @@
+.ai-chat-layout,
+.ai-chat-main,
+.ai-chat-session-aside {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .ai-chat-layout {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    min-height: auto !important;
+  }
+
+  .ai-chat-session-aside {
+    width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box;
+  }
+
+  .ai-chat-main {
+    width: 100% !important;
+    box-sizing: border-box;
+    min-height: 560px;
+  }
+
+  .ai-chat-message-section {
+    min-height: 260px !important;
+    max-height: 46vh;
+  }
+}

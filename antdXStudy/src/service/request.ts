@@ -1,4 +1,4 @@
-import { RuntimeConfig } from '@umijs/max';
+import type { RuntimeConfig } from '@umijs/max';
 import { message as antdMessage } from 'antd';
 
 export interface ApiEnvelope<T = unknown> {

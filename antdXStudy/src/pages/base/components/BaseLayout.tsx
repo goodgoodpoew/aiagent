@@ -1,5 +1,5 @@
 import { Bubble, Sender } from '@ant-design/x';
-import { Button, Empty, Popconfirm, Space, Spin, Typography, Tag, Switch, Select } from 'antd';
+import { Button, Empty, Popconfirm, Space, Spin, Typography, Tag, Switch, Select, Grid } from 'antd';
 import {
   DeleteOutlined,
   MessageOutlined,
@@ -45,6 +45,7 @@ import {
 } from '@/store/selectors';
 import type { ChatFile, ChatMessage } from '@/store/types';
 import MessagePartsRenderer from './MessagePartsRenderer';
+import './BaseLayout.css';
 
 function formatFileSize(size: number) {
   if (size >= 1024 * 1024) {
@@ -58,6 +59,8 @@ function formatFileSize(size: number) {
 
 const BaseLayout: FC = () => {
   const dispatch = useAppDispatch();
+  const screens = Grid.useBreakpoint();
+  const isNarrowScreen = !screens.md;
   const sessions = useAppSelector(selectSessions);
   const currentSessionId = useAppSelector(selectCurrentSessionId);
   const currentSession = useAppSelector(selectCurrentSession);
@@ -282,22 +285,27 @@ const BaseLayout: FC = () => {
 
   return (
     <div
+      className="ai-chat-layout"
       style={{
-        display: 'grid',
-        gridTemplateColumns: '280px minmax(0, 1fr)',
-        gap: 16,
-        minHeight: 'calc(100vh - 48px)',
+        display: isNarrowScreen ? 'flex' : 'grid',
+        flexDirection: isNarrowScreen ? 'column' : undefined,
+        gridTemplateColumns: isNarrowScreen ? undefined : '280px minmax(0, 1fr)',
+        gap: isNarrowScreen ? 12 : 16,
+        minHeight: isNarrowScreen ? 'auto' : 'calc(100vh - 48px)',
         height: '100%',
       }}
     >
       <aside
+        className="ai-chat-session-aside"
         style={{
           background: '#fff',
           border: '1px solid #f0f0f0',
           borderRadius: 8,
           padding: 12,
           minHeight: 0,
-          height: '100%',
+          height: isNarrowScreen ? 'auto' : '100%',
+          width: isNarrowScreen ? '100%' : undefined,
+          boxSizing: 'border-box',
         }}
       >
         <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -375,6 +383,7 @@ const BaseLayout: FC = () => {
         </Spin>
       </aside>
       <main
+        className="ai-chat-main"
         style={{
           background: '#fff',
           border: '1px solid #f0f0f0',
@@ -383,6 +392,8 @@ const BaseLayout: FC = () => {
           gridTemplateRows: 'auto minmax(0, 1fr) auto',
           minHeight: 0,
           height: '100%',
+          width: isNarrowScreen ? '100%' : undefined,
+          boxSizing: 'border-box',
         }}
       >
         <header style={{ padding: '14px 16px', borderBottom: '1px solid #f0f0f0' }}>
@@ -415,7 +426,16 @@ const BaseLayout: FC = () => {
             </div>
           )}
         </header>
-        <section style={{ padding: 16, overflowY: 'auto', minHeight: 420, height: '100%' }}>
+        <section
+          className="ai-chat-message-section"
+          style={{
+            padding: 16,
+            overflowY: 'auto',
+            minHeight: isNarrowScreen ? 260 : 420,
+            maxHeight: isNarrowScreen ? '46vh' : undefined,
+            height: '100%',
+          }}
+        >
           <Spin spinning={Boolean(messagesLoading)}>
             {bubbleItems.length ? (
               <Bubble.List role={bubbleRole} items={bubbleItems} />

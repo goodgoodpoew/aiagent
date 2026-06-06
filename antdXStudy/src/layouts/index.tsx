@@ -6,6 +6,7 @@ import {
   DatabaseOutlined,
   FileOutlined,
 } from '@ant-design/icons';
+import './index.css';
 
 const { Sider, Content } = Layout;
 
@@ -26,12 +27,14 @@ export default function MainLayout() {
   const { pathname } = useLocation();
 
   return (
-    <Layout style={{ height: '100vh' }}>
+    <Layout className="main-layout" style={{ height: '100vh' }}>
       <Sider
+        className="main-layout-sider"
         theme="light"
         style={{ borderRight: '1px solid #f0f0f0', paddingTop: 16 }}
       >
         <div
+          className="main-layout-logo"
           style={{
             height: 48,
             display: 'flex',
@@ -56,7 +59,10 @@ export default function MainLayout() {
           }}
         />
       </Sider>
-      <Content style={{ padding: 24, background: '#fafafa' }}>
+      <Content
+        className="main-layout-content"
+        style={{ padding: 24, background: '#fafafa', width: '100%', boxSizing: 'border-box' }}
+      >
         <Outlet />
       </Content>
     </Layout>

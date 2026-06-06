@@ -1,0 +1,40 @@
+.main-layout-content {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+
+  .main-layout-sider {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #f0f0f0;
+    padding-top: 8px !important;
+  }
+
+  .main-layout-logo {
+    height: 40px !important;
+    margin-bottom: 4px !important;
+    font-size: 16px !important;
+  }
+
+  .main-layout-content {
+    width: 100% !important;
+    flex: 0 0 auto !important;
+    box-sizing: border-box;
+    padding: 12px !important;
+  }
+
+  .main-layout-sider .ant-menu-submenu-title,
+  .main-layout-sider .ant-menu-item {
+    height: 36px;
+    line-height: 36px;
+  }
+}

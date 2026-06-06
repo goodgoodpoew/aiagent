@@ -18,7 +18,7 @@ interface ParsedSseEvent {
 
 // 浏览器拿到的是一段连续字节流，SSE 协议用空行分隔事件；
 // 单个事件内部可能有 event/id/data 多行，这里只提取前端消费需要的 event 和 data。
-function parseSseEvent(rawEvent: string): ParsedSseEvent | undefined {
+export function parseSseEvent(rawEvent: string): ParsedSseEvent | undefined {
   const parsed: ParsedSseEvent = {};
   const dataLines: string[] = [];
 
