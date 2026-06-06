@@ -17,7 +17,7 @@ export class StreamOrchestratorService {
     private readonly projector: AgentRuntimeEventProjector,
     @Inject(STREAM_EVENT_WRITER_FACTORY)
     private readonly createWriter: StreamEventWriterFactory,
-  ) {}
+  ) { }
 
   async streamChat(dto: ChatStreamRequestV2, userId: string, res: Response): Promise<void> {
     this.prepareSseResponse(res);
@@ -26,12 +26,13 @@ export class StreamOrchestratorService {
     const traceId = crypto.randomUUID();
     const writer = this.createWriter(res, { requestId, traceId });
 
-    for await (const event of this.agentEngine.run({
+    const events = this.agentEngine.run({
       dto,
       userId,
       requestId,
       traceId,
-    })) {
+    });
+    for await (const event of events) {
       this.projector.project(event, { res, writer });
     }
 
