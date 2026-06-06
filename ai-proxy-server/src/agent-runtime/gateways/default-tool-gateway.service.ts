@@ -24,6 +24,10 @@ export class DefaultToolGatewayService implements ToolGatewayPort {
     return this.toolRegistry.findByName(name);
   }
 
+  findInternalTool(source: ToolDefinition['source'], name: string, serverId?: string): ToolDefinition | undefined {
+    return this.toolRegistry.findInternalTool(source, name, serverId);
+  }
+
   execute(request: ToolExecutionRequest): Promise<ToolExecutionResult> {
     return this.toolExecutor.execute(request);
   }

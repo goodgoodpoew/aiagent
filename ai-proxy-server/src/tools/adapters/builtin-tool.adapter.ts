@@ -1,4 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { FileService } from '@/files/file.service';
+import {
+  buildAttachmentContext,
+  READ_ATTACHED_FILES_TOOL_NAME,
+  type FileReadToolArguments,
+  type FileReadToolResult,
+} from '../file-read-tool.types';
 import type {
   ToolDefinition,
   ToolExecutionRequest,
@@ -7,6 +14,8 @@ import type {
 
 @Injectable()
 export class BuiltinToolAdapter {
+  constructor(private readonly fileService: FileService) {}
+
   private readonly definitions: ToolDefinition[] = [
     {
       source: 'builtin',
@@ -24,6 +33,29 @@ export class BuiltinToolAdapter {
       },
       enabled: true,
     },
+    {
+      source: 'builtin',
+      name: READ_ATTACHED_FILES_TOOL_NAME,
+      description: '读取当前用户本轮明确附加的文件内容，供聊天上下文组装使用。',
+      inputSchema: {
+        type: 'object',
+        required: ['fileIds', 'userId'],
+        properties: {
+          fileIds: {
+            type: 'array',
+            items: { type: 'string' },
+            description: '本轮用户消息明确携带的文件 ID 列表。',
+          },
+          userId: {
+            type: 'string',
+            description: '当前请求用户 ID。',
+          },
+        },
+        additionalProperties: false,
+      },
+      enabled: true,
+      internal: true,
+    },
   ];
 
   listTools(): ToolDefinition[] {
@@ -31,17 +63,25 @@ export class BuiltinToolAdapter {
   }
 
   async execute(request: ToolExecutionRequest): Promise<ToolExecutionResult> {
-    if (request.tool.name !== 'get_current_time') {
-      return {
-        toolCallId: request.toolCallId,
-        toolName: request.tool.name,
-        error: {
-          code: 'BUILTIN_TOOL_NOT_FOUND',
-          message: `未找到内置工具：${request.tool.name}`,
-        },
-      };
+    if (request.tool.name === 'get_current_time') {
+      return this.getCurrentTime(request);
     }
 
+    if (request.tool.name === READ_ATTACHED_FILES_TOOL_NAME) {
+      return this.readAttachedFiles(request);
+    }
+
+    return {
+      toolCallId: request.toolCallId,
+      toolName: request.tool.name,
+      error: {
+        code: 'BUILTIN_TOOL_NOT_FOUND',
+        message: `未找到内置工具：${request.tool.name}`,
+      },
+    };
+  }
+
+  private async getCurrentTime(request: ToolExecutionRequest): Promise<ToolExecutionResult> {
     const timeZone = typeof request.arguments.timeZone === 'string'
       ? request.arguments.timeZone
       : 'Asia/Shanghai';
@@ -70,5 +110,69 @@ export class BuiltinToolAdapter {
         },
       };
     }
+  }
+
+  private async readAttachedFiles(request: ToolExecutionRequest): Promise<ToolExecutionResult> {
+    const args = this.parseFileReadArguments(request.arguments);
+    if (!args) {
+      return {
+        toolCallId: request.toolCallId,
+        toolName: request.tool.name,
+        error: {
+          code: 'FILE_READ_ARGUMENTS_INVALID',
+          message: '读取附件工具参数不合法',
+        },
+      };
+    }
+
+    const detail = await this.fileService.getReadableContentsDetailed(args.fileIds, args.userId);
+    const result: FileReadToolResult = {
+      readable: detail.readable,
+      unavailable: detail.unavailable,
+      readableFileIds: detail.readable.map((file) => file.fileId),
+      attachmentContext: buildAttachmentContext(detail.readable),
+      attachments: detail.readable.map((file) => ({
+        fileId: file.fileId,
+        name: file.name,
+        type: file.type,
+        status: 'ready',
+      })),
+      readResults: [
+        ...detail.readable.map((file) => ({
+          fileId: file.fileId,
+          name: file.name,
+          mimeType: file.type,
+          tokenEstimate: file.tokenEstimate,
+          status: 'done' as const,
+        })),
+        ...detail.unavailable.map((file) => ({
+          fileId: file.fileId,
+          name: file.name ?? file.fileId,
+          mimeType: file.type,
+          status: 'failed' as const,
+          reason: file.reason,
+        })),
+      ],
+    };
+
+    return {
+      toolCallId: request.toolCallId,
+      toolName: request.tool.name,
+      result,
+    };
+  }
+
+  private parseFileReadArguments(args: Record<string, unknown>): FileReadToolArguments | null {
+    const fileIds = Array.isArray(args.fileIds)
+      ? args.fileIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+      : [];
+    const userId = typeof args.userId === 'string' ? args.userId : '';
+
+    if (!userId) return null;
+
+    return {
+      fileIds: Array.from(new Set(fileIds)),
+      userId,
+    };
   }
 }

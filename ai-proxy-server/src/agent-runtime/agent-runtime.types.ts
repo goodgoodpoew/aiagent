@@ -5,6 +5,7 @@ import type { CompletedFileReadPartInput, CompletedReasoningPartInput, Completed
 import type { StreamEventScope, StreamEventType, StreamFailureStage } from '@/streaming/protocol/stream-event.types';
 import type { ChatStreamRequestV2 } from '@/streaming/dto/chat-stream-v2.dto';
 import type { ToolDefinition } from '@/tools/dto/tool-definition.dto';
+import type { FileReadToolResult } from '@/tools/file-read-tool.types';
 
 export interface AgentRuntimeInput {
   dto: ChatStreamRequestV2;
@@ -46,6 +47,7 @@ export interface AgentRunState {
   autoGenerateSessionName: boolean;
   textProjection: string;
   fileIds: string[];
+  attachmentRead?: FileReadToolResult;
   prepared?: PreparedSendMessage;
   providerRequest?: ChatRequestDto;
   promptMessagesForUsage: ChatMessage[];

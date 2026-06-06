@@ -20,6 +20,10 @@ import {
   type CompletedToolResultPartInput,
 } from '@/streaming/services/stream-message-builder.service';
 import type { ToolDefinition } from '@/tools/dto/tool-definition.dto';
+import {
+  isFileReadToolResult,
+  READ_ATTACHED_FILES_TOOL_NAME,
+} from '@/tools/file-read-tool.types';
 import type { AgentEnginePort } from '../ports/agent-engine.port';
 import { DefaultToolGatewayService } from '../gateways/default-tool-gateway.service';
 import type {
@@ -65,6 +69,7 @@ export class NativeAgentEngineService implements AgentEnginePort {
       this.normalizeInput(input, state);
       await this.resolveModel(input, ctx, state);
       this.applyPolicyGuard();
+      await this.readAttachedFiles(ctx, state);
       await this.prepareConversation(input, ctx, state);
 
       yield {
@@ -175,6 +180,7 @@ export class NativeAgentEngineService implements AgentEnginePort {
       clientMessageId: input.dto.clientMessageId,
       inputParts: input.dto.input.parts,
       fileIds: state.fileIds,
+      attachmentRead: state.attachmentRead,
       autoGenerateSessionName: state.autoGenerateSessionName,
       platform: ctx.platform!,
       provider: ctx.platform!,
@@ -270,7 +276,10 @@ export class NativeAgentEngineService implements AgentEnginePort {
     requestDto.model = ctx.model;
     requestDto.credentialId = input.dto.runtime?.credentialId;
     requestDto.stream = true;
-    requestDto.messages = state.prepared!.llmMessages;
+    requestDto.messages = this.injectAttachmentContext(
+      state.prepared!.llmMessages,
+      state.attachmentRead?.attachmentContext,
+    );
     requestDto.temperature = input.dto.runtime?.temperature;
     requestDto.max_tokens = input.dto.runtime?.maxTokens;
     requestDto.fileIds = state.fileIds;
@@ -304,6 +313,52 @@ export class NativeAgentEngineService implements AgentEnginePort {
         this.streamScope(ctx),
       );
     }
+  }
+
+  private async readAttachedFiles(
+    ctx: AgentRunContext,
+    state: AgentRunState,
+  ): Promise<void> {
+    if (!state.fileIds.length) return;
+
+    state.failureStage = 'tool_execution';
+    const tool = this.toolGateway.findInternalTool('builtin', READ_ATTACHED_FILES_TOOL_NAME);
+    if (!tool) {
+      throw new BadRequestException('内部文件读取工具未注册');
+    }
+
+    const result = await this.toolGateway.execute({
+      toolCallId: `internal:${ctx.requestId}:${READ_ATTACHED_FILES_TOOL_NAME}`,
+      tool,
+      arguments: {
+        fileIds: state.fileIds,
+        userId: state.effectiveUserId,
+      },
+      skipResultTruncation: true,
+    });
+
+    if (result.error) {
+      throw new BadRequestException(result.error.message);
+    }
+    if (!isFileReadToolResult(result.result)) {
+      throw new BadRequestException('内部文件读取工具返回结果不合法');
+    }
+
+    state.attachmentRead = result.result;
+    state.failureStage = 'prepare';
+  }
+
+  private injectAttachmentContext(messages: ChatMessage[], attachmentContext?: string): ChatMessage[] {
+    const cloned = messages.map((message) => ({ ...message }));
+    if (!attachmentContext || cloned.length === 0) {
+      return cloned;
+    }
+
+    const last = cloned[cloned.length - 1];
+    if (last.role === 'user') {
+      last.content = `${attachmentContext}\n\n${last.content}`;
+    }
+    return cloned;
   }
 
   private *handleProviderEvent(
@@ -473,8 +528,9 @@ export class NativeAgentEngineService implements AgentEnginePort {
     followUpDto.max_tokens = input.dto.runtime?.maxTokens;
     followUpDto.fileIds = state.fileIds;
     followUpDto.reasoning = input.dto.runtime?.reasoning;
+    const baseMessages = state.providerRequest?.messages ?? state.prepared!.llmMessages;
     followUpDto.messages = [
-      ...state.prepared!.llmMessages,
+      ...baseMessages,
       {
         role: 'assistant',
         content: state.finalContent,

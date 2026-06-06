@@ -23,6 +23,9 @@ export class ToolExecutorService {
   async execute(request: ToolExecutionRequest): Promise<ToolExecutionResult> {
     try {
       const result = await this.withTimeout(this.dispatch(request));
+      if (request.skipResultTruncation) {
+        return result;
+      }
       return this.truncateResult(result);
     } catch (error) {
       this.logger.warn(

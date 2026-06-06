@@ -9,6 +9,7 @@ import { SessionEventService } from '../session/session-event.service';
 import { SessionService } from '../session/session.service';
 import type { UserMessagePart } from '../streaming/dto/chat-stream-v2.dto';
 import type { MessagePart } from '../streaming/protocol/message-part.types';
+import type { FileReadToolResult } from '@/tools/file-read-tool.types';
 
 export interface PrepareSendMessageParams {
   userId: string;
@@ -23,6 +24,7 @@ export interface PrepareSendMessageParams {
   provider: string;
   model: string;
   credentialId?: string;
+  attachmentRead?: FileReadToolResult;
 }
 
 export interface PreparedSendMessage {
@@ -133,6 +135,7 @@ export class ConversationApplicationService {
       userMessageId,
       requestId,
       clientMessageId: params.clientMessageId,
+      attachmentRead: params.attachmentRead,
     });
 
     // assistant 占位必须在请求模型前落库，流失败或刷新时前端才能恢复这轮回复状态。

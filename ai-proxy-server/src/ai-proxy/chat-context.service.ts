@@ -3,12 +3,16 @@ import * as crypto from 'crypto';
 import { MessageService } from '../message/message.service';
 import { SessionCacheService, CachedMessage } from '../session/session-cache.service';
 import { toLlmMessages, MessageWithMetadata } from '../message/message-filter.util';
-import { FileService } from '../files/file.service';
-import { ReadableFileContent } from '../files/file-reader.port';
 import { Prisma } from '@prisma/client';
 import { SessionService } from '../session/session.service';
 import { MESSAGE_PROTOCOL_V2 } from '../message/dto/create-message.dto';
 import type { MessagePart } from '@/streaming/protocol/message-part.types';
+import type {
+  AttachmentReadResult,
+  FileReadToolResult,
+} from '@/tools/file-read-tool.types';
+
+export type { AttachmentReadResult } from '@/tools/file-read-tool.types';
 
 export interface PrepareContextParams {
   sessionId: string;
@@ -19,28 +23,7 @@ export interface PrepareContextParams {
   userMessageId?: string;
   requestId?: string;
   clientMessageId?: string;
-}
-
-export interface AttachmentReadResult {
-  fileId: string;
-  name: string;
-  mimeType?: string;
-  tokenEstimate?: number;
-  status: 'done' | 'failed';
-  reason?: string;
-}
-
-/**
- * 构建附件上下文文本，注入到 LLM messages
- */
-function buildAttachmentContext(files: ReadableFileContent[]): string {
-  if (!files.length) return '';
-
-  const blocks = files.map(
-    (f) => `<file id="${f.fileId}" name="${f.name}" type="${f.type}">\n${f.content}\n</file>`,
-  );
-
-  return `用户随消息附带了以下文件内容，请只在相关时引用：\n\n${blocks.join('\n\n')}`;
+  attachmentRead?: FileReadToolResult;
 }
 
 /**
@@ -50,7 +33,7 @@ function buildAttachmentContext(files: ReadableFileContent[]): string {
  * - 保存当前用户消息到 DB（含附件快照）
  * - 使消息缓存失效
  * - 获取全量历史消息
- * - 通过 FileReaderPort 读取文件内容并拼接为 LLM 上下文
+ * - 消费运行时文件读取工作结果，记录模型实际可读附件
  */
 @Injectable()
 export class ChatContextService {
@@ -59,7 +42,6 @@ export class ChatContextService {
   constructor(
     private readonly messageService: MessageService,
     private readonly sessionCache: SessionCacheService,
-    private readonly fileService: FileService,
     private readonly sessionService: SessionService,
   ) { }
 
@@ -87,10 +69,18 @@ export class ChatContextService {
     attachmentReadResults: AttachmentReadResult[];
   }> {
     // 解构出基本信息
-    const { sessionId, userId, query, parts, fileIds, requestId, clientMessageId } = params;
+    const {
+      sessionId,
+      userId,
+      query,
+      parts,
+      fileIds,
+      requestId,
+      clientMessageId,
+      attachmentRead,
+    } = params;
 
-    // 1. 读取本轮附件内容并构建上下文；历史会话文件不自动进入本轮模型上下文。
-    let attachmentContext = ''; // 附件上下文
+    // 1. 消费本轮附件读取结果；历史会话文件不自动进入本轮模型上下文。
     let attachments: unknown = undefined; // 附件
     let unavailableAttachments: unknown = undefined; // 不可用附件
     const effectiveFileIds = fileIds?.length ? fileIds : []; // 有效文件 ID
@@ -103,13 +93,11 @@ export class ChatContextService {
         .map((part) => [part.fileId, part] as const),
     );
 
-    if (effectiveFileIds.length > 0) {
-      const detail = await this.fileService.getReadableContentsDetailed(effectiveFileIds, userId);
-      attachmentContext = buildAttachmentContext(detail.readable);
-      readableFileIds = detail.readable.map((f) => f.fileId);
+    if (effectiveFileIds.length > 0 && attachmentRead) {
+      readableFileIds = attachmentRead.readableFileIds;
 
-      const readableById = new Map(detail.readable.map((file) => [file.fileId, file] as const));
-      const unavailableById = new Map(detail.unavailable.map((file) => [file.fileId, file] as const));
+      const readableById = new Map(attachmentRead.readable.map((file) => [file.fileId, file] as const));
+      const unavailableById = new Map(attachmentRead.unavailable.map((file) => [file.fileId, file] as const));
       effectiveFileIds.forEach((fileId) => {
         const readable = readableById.get(fileId);
         if (readable) {
@@ -136,17 +124,19 @@ export class ChatContextService {
         }
       });
 
-      attachments = detail.readable.map((f) => ({
-        fileId: f.fileId,
-        name: f.name,
-        type: f.type,
-        status: 'ready',
-      }));
+      attachments = attachmentRead.attachments;
 
-      if (detail.unavailable.length > 0) {
-        unavailableAttachments = detail.unavailable;
+      if (attachmentRead.unavailable.length > 0) {
+        unavailableAttachments = attachmentRead.unavailable.map((file) => {
+          const fallback = requestedFileMeta.get(file.fileId);
+          return {
+            ...file,
+            name: file.name ?? fallback?.name,
+            type: file.type ?? fallback?.mimeType,
+          };
+        });
         this.logger.warn(
-          `部分附件未进入模型上下文: session=${sessionId}, files=${detail.unavailable
+          `部分附件未进入模型上下文: session=${sessionId}, files=${attachmentRead.unavailable
             .map((item) => item.fileId)
             .join(',')}`,
         );
@@ -229,14 +219,6 @@ export class ChatContextService {
     }
 
     const messages = toLlmMessages(rawMessages);
-
-    // 6. 将附件上下文注入到最后一条用户消息中
-    if (attachmentContext && messages.length > 0) {
-      const last = messages[messages.length - 1];
-      if (last.role === 'user') {
-        last.content = `${attachmentContext}\n\n${last.content}`;
-      }
-    }
 
     this.logger.debug(
       `会话 ${sessionId} 携带 ${messages.length} 条历史上送 LLM（原始 ${rawMessages.length} 条）`,

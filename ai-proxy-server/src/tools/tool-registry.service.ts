@@ -13,6 +13,10 @@ export class ToolRegistryService {
   ) {}
 
   listTools(): ToolDefinition[] {
+    return this.listAllTools().filter((tool) => tool.enabled && !tool.internal);
+  }
+
+  private listAllTools(): ToolDefinition[] {
     return [
       ...this.builtinToolAdapter.listTools(),
       ...this.customToolAdapter.listTools(),
@@ -46,5 +50,14 @@ export class ToolRegistryService {
 
   findByName(name: string): ToolDefinition | undefined {
     return this.listTools().find((tool) => tool.name === name);
+  }
+
+  findInternalTool(source: ToolDefinition['source'], name: string, serverId?: string): ToolDefinition | undefined {
+    return this.listAllTools().find((tool) =>
+      tool.internal
+      && tool.source === source
+      && tool.name === name
+      && (source !== 'mcp' || tool.serverId === serverId),
+    );
   }
 }

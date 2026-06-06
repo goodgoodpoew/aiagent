@@ -7,6 +7,7 @@ export interface ToolDefinition {
   inputSchema: Record<string, unknown>;
   serverId?: string;
   enabled: boolean;
+  internal?: boolean;
 }
 
 export interface ToolDefinitionRef {
@@ -19,6 +20,7 @@ export interface ToolExecutionRequest {
   toolCallId: string;
   tool: ToolDefinition;
   arguments: Record<string, unknown>;
+  skipResultTruncation?: boolean;
 }
 
 export interface ToolExecutionResult {
