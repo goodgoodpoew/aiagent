@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tool 开发手册"
+  short_description: "规范开发和评审 aiagent 仓库内工具能力流程"
+  default_prompt: "Use $tool-development-manual to add or review a tool in the aiagent repository."

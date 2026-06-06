@@ -2,13 +2,20 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   DEFAULT_API_BASE_URL,
   DEFAULT_USER_ID,
+  buildAuthHeaders,
+  clearAuthSession,
   getApiBaseUrl,
+  getAuthToken,
+  getStoredAuthUser,
   getUserId,
+  hasAuthSession,
+  saveAuthSession,
 } from './config';
 
 afterEach(() => {
   delete process.env.UMI_APP_API_BASE_URL;
   delete process.env.UMI_APP_USER_ID;
+  clearAuthSession();
 });
 
 describe('service config', () => {
@@ -23,5 +30,22 @@ describe('service config', () => {
 
     expect(getApiBaseUrl()).toBe('http://gray.example.test/api');
     expect(getUserId()).toBe('gray-user-id');
+  });
+
+  it('优先读取本地登录用户并生成认证头', () => {
+    saveAuthSession('token-1', {
+      id: 'user-1',
+      username: 'demo',
+      email: 'demo@example.test',
+    });
+
+    expect(getAuthToken()).toBe('token-1');
+    expect(getStoredAuthUser()?.id).toBe('user-1');
+    expect(getUserId()).toBe('user-1');
+    expect(hasAuthSession()).toBe(true);
+    expect(buildAuthHeaders()).toEqual({
+      'X-User-Id': 'user-1',
+      Authorization: 'Bearer token-1',
+    });
   });
 });

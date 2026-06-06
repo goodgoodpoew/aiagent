@@ -18,6 +18,11 @@ export default defineConfig({
   },
   routes: [
     {
+      path: '/login',
+      component: '@/pages/login',
+      title: '登录',
+    },
+    {
       path: '/',
       title: '示例',
       routes: [

@@ -1,4 +1,4 @@
-import { getApiBaseUrl, getUserId } from './config';
+import { buildAuthHeaders, getApiBaseUrl } from './config';
 
 const MAX_RETRY_DELAY = 5000;
 const LAST_EVENT_ID_KEY = 'sessionEvents.lastEventId';
@@ -133,7 +133,7 @@ export function subscribeSessionEvents(
       const lastEventId = getLastEventId();
       const response = await fetch(`${getApiBaseUrl()}/sessions/events`, {
         headers: {
-          'X-User-Id': getUserId(),
+          ...buildAuthHeaders(),
           ...(lastEventId ? { 'Last-Event-ID': lastEventId } : {}),
         },
         signal: controller.signal,

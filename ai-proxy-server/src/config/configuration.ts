@@ -5,6 +5,10 @@ export default () => ({
   claudeApiKey: process.env.CLAUDE_API_KEY,
   geminiApiKey: process.env.GEMINI_API_KEY,
   modelCredentialSecret: process.env.MODEL_CREDENTIAL_SECRET,
+  auth: {
+    tokenSecret: process.env.AUTH_TOKEN_SECRET || 'dev-auth-token-secret',
+    tokenTtlSeconds: parseInt(process.env.AUTH_TOKEN_TTL_SECONDS ?? String(7 * 24 * 60 * 60), 10),
+  },
 
   redis: {
     host: process.env.REDIS_HOST ?? 'localhost',

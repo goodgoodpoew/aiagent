@@ -9,6 +9,9 @@ import { QuerySessionDto } from './dto/query-session.dto';
 import { AttachSessionFilesDto } from './dto/attach-session-files.dto';
 import { FileService } from '../files/file.service';
 import { SkipResponseEnvelope } from '../common/response/skip-response-envelope.decorator';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { resolveUserId } from '../auth/user-id.util';
+import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller('api/sessions')
 export class SessionController {
@@ -20,24 +23,33 @@ export class SessionController {
   ) {}
 
   @Post()
-  create(@Headers('x-user-id') userId: string, @Body() dto: CreateSessionDto) {
-    return this.sessionService.create(userId, dto);
+  create(
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+    @Body() dto: CreateSessionDto,
+  ) {
+    return this.sessionService.create(resolveUserId(user, userId), dto);
   }
 
   @Get()
-  findAll(@Headers('x-user-id') userId: string, @Query() query: QuerySessionDto) {
-    return this.sessionService.findAll(userId, query);
+  findAll(
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+    @Query() query: QuerySessionDto,
+  ) {
+    return this.sessionService.findAll(resolveUserId(user, userId), query);
   }
 
   @Get('events')
   @SkipResponseEnvelope()
   events(
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Headers('last-event-id') lastEventId: string | undefined,
     @Query('lastEventId') queryLastEventId: string | undefined,
     @Res() res: Response,
   ) {
-    const effectiveUserId = userId || 'anonymous';
+    const effectiveUserId = resolveUserId(user, userId);
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -49,48 +61,57 @@ export class SessionController {
   }
 
   @Get(':id')
-  findOne(@Headers('x-user-id') userId: string, @Param('id') id: string) {
-    return this.sessionService.findOne(id, userId);
+  findOne(
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.sessionService.findOne(id, resolveUserId(user, userId));
   }
 
   @Get(':id/messages')
   async getMessages(
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Param('id') id: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    await this.sessionService.findOne(id, userId);
+    await this.sessionService.findOne(id, resolveUserId(user, userId));
     return this.messageService.findBySessionId(id, cursor, limit ? Number(limit) : 50);
   }
 
   @Patch(':id')
   update(
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Param('id') id: string,
     @Body() dto: UpdateSessionDto,
   ) {
-    return this.sessionService.update(id, userId, dto);
+    return this.sessionService.update(id, resolveUserId(user, userId), dto);
   }
 
   @Post(':id/files')
   attachFiles(
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Param('id') id: string,
     @Body() dto: AttachSessionFilesDto,
   ) {
-    return this.sessionService.attachFilesToSession(userId, id, dto.fileIds);
+    return this.sessionService.attachFilesToSession(resolveUserId(user, userId), id, dto.fileIds);
   }
 
   @Get(':id/files')
   async getFiles(
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Param('id') id: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    await this.sessionService.findOne(id, userId);
-    return this.fileService.findAll(userId, {
+    const effectiveUserId = resolveUserId(user, userId);
+    await this.sessionService.findOne(id, effectiveUserId);
+    return this.fileService.findAll(effectiveUserId, {
       sessionId: id,
       cursor,
       limit: limit ? Number(limit) : undefined,
@@ -98,7 +119,11 @@ export class SessionController {
   }
 
   @Delete(':id')
-  remove(@Headers('x-user-id') userId: string, @Param('id') id: string) {
-    return this.sessionService.softDelete(id, userId);
+  remove(
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.sessionService.softDelete(id, resolveUserId(user, userId));
   }
 }

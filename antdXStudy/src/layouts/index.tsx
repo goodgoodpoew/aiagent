@@ -1,11 +1,15 @@
 import { history, Outlet, useLocation } from '@umijs/max';
-import { Layout, Menu } from 'antd';
+import { Button, Layout, Menu, Space, Typography } from 'antd';
 import {
   MessageOutlined,
   ApiOutlined,
   DatabaseOutlined,
   FileOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
+import { useEffect, useMemo, useState } from 'react';
+import { getCurrentStoredUser, logout } from '@/service/auth';
+import { hasAuthSession } from '@/service/config';
 import './index.css';
 
 const { Sider, Content } = Layout;
@@ -25,13 +29,38 @@ const menuItems = [
 
 export default function MainLayout() {
   const { pathname } = useLocation();
+  const [user, setUser] = useState(() => getCurrentStoredUser());
+  const isLoginPage = pathname === '/login';
+
+  useEffect(() => {
+    if (isLoginPage) return;
+    if (!hasAuthSession()) {
+      history.replace('/login');
+      return;
+    }
+    setUser(getCurrentStoredUser());
+  }, [isLoginPage, pathname]);
+
+  const displayName = useMemo(
+    () => user?.displayName || user?.username || '用户',
+    [user],
+  );
+
+  if (isLoginPage) {
+    return <Outlet />;
+  }
 
   return (
     <Layout className="main-layout" style={{ height: '100vh' }}>
       <Sider
         className="main-layout-sider"
         theme="light"
-        style={{ borderRight: '1px solid #f0f0f0', paddingTop: 16 }}
+        style={{
+          borderRight: '1px solid #f0f0f0',
+          paddingTop: 16,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         <div
           className="main-layout-logo"
@@ -58,6 +87,23 @@ export default function MainLayout() {
             }
           }}
         />
+        <div style={{ marginTop: 'auto', padding: 12 }}>
+          <Space direction="vertical" size={8} style={{ width: '100%' }}>
+            <Typography.Text ellipsis style={{ maxWidth: 176 }}>
+              {displayName}
+            </Typography.Text>
+            <Button
+              block
+              icon={<LogoutOutlined />}
+              onClick={() => {
+                logout();
+                history.replace('/login');
+              }}
+            >
+              登出
+            </Button>
+          </Space>
+        </div>
       </Sider>
       <Content
         className="main-layout-content"

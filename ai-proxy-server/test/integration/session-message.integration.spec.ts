@@ -15,12 +15,14 @@ const userA = {
   id: '11111111-1111-4111-8111-111111111111',
   username: 'integration-user-a',
   email: 'integration-user-a@example.test',
+  passwordHash: 'unusable',
 };
 
 const userB = {
   id: '11111111-1111-4111-8111-111111111112',
   username: 'integration-user-b',
   email: 'integration-user-b@example.test',
+  passwordHash: 'unusable',
 };
 
 async function seedUsers(context: IntegrationAppContext) {

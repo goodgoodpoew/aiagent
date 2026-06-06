@@ -3,7 +3,7 @@ import {
   type ChatStreamRequestV2,
   type StreamEventEnvelope,
 } from './stream-protocol';
-import { getApiBaseUrl, getUserId } from './config';
+import { buildAuthHeaders, getApiBaseUrl } from './config';
 
 export interface ChatStreamV2Handlers {
   onEvent: (event: StreamEventEnvelope) => void;
@@ -46,8 +46,8 @@ export async function sendChatStreamV2(
   const response = await fetch(`${getApiBaseUrl()}/ai/chat/stream/v2`, {
     method: 'POST',
     headers: {
+      ...buildAuthHeaders(),
       'Content-Type': 'application/json',
-      'X-User-Id': getUserId(),
     },
     body: JSON.stringify({
       ...payload,

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const requestMock = vi.fn();
 vi.mock('@umijs/max', () => ({ request: (...args: unknown[]) => requestMock(...args) }));
 
-import { deleteFile, fetchFiles, fetchSessionFiles, getFileDownloadUrl, uploadFile } from './file';
+import { deleteFile, downloadFile, fetchFiles, fetchSessionFiles, getFileDownloadUrl, uploadFile } from './file';
 
 const BASE_URL = 'http://localhost:3001/api';
 
@@ -14,6 +14,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('file service - request 端点', () => {
@@ -79,5 +80,40 @@ describe('file service - uploadFile 原生 fetch 上传', () => {
 
     const file = new File(['abc'], 'a.txt', { type: 'text/plain' });
     await expect(uploadFile(file)).rejects.toMatchObject({ code: 'FILE_TOO_LARGE', message: '文件过大' });
+  });
+});
+
+describe('file service - downloadFile 原生 fetch 下载', () => {
+  it('下载成功时创建临时链接', async () => {
+    const clickMock = vi.fn();
+    const revokeMock = vi.fn();
+    const createObjectUrlMock = vi.fn().mockReturnValue('blob:download');
+    vi.stubGlobal('URL', {
+      createObjectURL: createObjectUrlMock,
+      revokeObjectURL: revokeMock,
+    });
+    vi.spyOn(document, 'createElement').mockReturnValue({
+      href: '',
+      download: '',
+      click: clickMock,
+    } as unknown as HTMLAnchorElement);
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(new Blob(['abc']), {
+        status: 200,
+        headers: { 'content-disposition': 'attachment; filename="a.txt"' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await downloadFile('f1');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE_URL}/files/f1/download`,
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'X-User-Id': expect.any(String) }),
+      }),
+    );
+    expect(clickMock).toHaveBeenCalled();
+    expect(revokeMock).toHaveBeenCalledWith('blob:download');
   });
 });

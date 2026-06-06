@@ -18,6 +18,8 @@ import configuration from './config/configuration';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { ResponseEnvelopeInterceptor } from './common/interceptors/response-envelope.interceptor';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { AuthModule } from './auth/auth.module';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
@@ -54,6 +56,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     ThrottleModule,
     QueueModule,
     PrismaModule,
+    AuthModule,
     AiProxyModule,
     SessionModule,
     ModelProviderModule,
@@ -63,6 +66,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
     { provide: APP_GUARD, useClass: CorsGuard },
+    { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })

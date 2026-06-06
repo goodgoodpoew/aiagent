@@ -16,11 +16,13 @@ async function main() {
     update: {
       username: 'gray-user',
       email: 'gray-user@example.test',
+      passwordHash: 'unusable',
     },
     create: {
       id: GRAY_USER_ID,
       username: 'gray-user',
       email: 'gray-user@example.test',
+      passwordHash: 'unusable',
     },
   });
 

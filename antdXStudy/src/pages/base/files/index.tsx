@@ -6,7 +6,7 @@ import { deleteManagedFile, loadFiles } from '@/store/fileThunks';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { selectManagedFiles } from '@/store/selectors';
 import type { ChatFile } from '@/store/types';
-import { getFileDownloadUrl } from '@/service/file';
+import { downloadFile } from '@/service/file';
 
 function formatFileSize(size: number) {
   if (size >= 1024 * 1024) {
@@ -109,7 +109,7 @@ const FilesPage: FC = () => {
             icon={<DownloadOutlined />}
             size="small"
             type="text"
-            onClick={() => window.open(getFileDownloadUrl(record.id), '_blank')}
+            onClick={() => void downloadFile(record.id)}
           />
           <Popconfirm
             title="确定删除该文件？"

@@ -1,6 +1,6 @@
 import type { RuntimeConfig } from '@umijs/max';
 import { message as antdMessage } from 'antd';
-import { getUserId } from './config';
+import { buildAuthHeaders } from './config';
 
 export interface ApiEnvelope<T = unknown> {
   success: boolean;
@@ -101,9 +101,7 @@ export async function parseApiEnvelopeResponse<T>(
 
 export const request: RuntimeConfig['request'] = {
   timeout: 1000,
-  headers: {
-    'X-User-Id': getUserId(),
-  },
+  headers: {},
   errorConfig: {
     errorThrower(data) {
       if (isApiEnvelope(data) && !data.success) {
@@ -136,7 +134,18 @@ export const request: RuntimeConfig['request'] = {
       throw apiError;
     },
   },
-  requestInterceptors: [],
+  requestInterceptors: [
+    (url: string, options: any) => ({
+      url,
+      options: {
+        ...options,
+        headers: {
+          ...buildAuthHeaders(),
+          ...options.headers,
+        },
+      },
+    }),
+  ],
   responseInterceptors: [
     (response: any) => {
       if (isApiEnvelope(response?.data)) {

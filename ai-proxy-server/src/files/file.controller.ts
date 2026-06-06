@@ -22,6 +22,9 @@ import { AppException } from '../common/errors/app.exception';
 import { ErrorCode } from '../common/errors/error-code.enum';
 import { SkipResponseEnvelope } from '../common/response/skip-response-envelope.decorator';
 import { QueryFileDto } from './dto/query-file.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { resolveUserId } from '../auth/user-id.util';
+import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller('/api/files')
 export class FileController {
@@ -33,11 +36,12 @@ export class FileController {
    * 查询当前用户文件列表
    */
   @Get()
-  async findAll(@Headers('x-user-id') userId: string, @Query() query: QueryFileDto) {
-    if (!userId) {
-      return { files: [], cursor: null };
-    }
-    return this.fileService.findAll(userId, query);
+  async findAll(
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+    @Query() query: QueryFileDto,
+  ) {
+    return this.fileService.findAll(resolveUserId(user, userId), query);
   }
 
   /**
@@ -47,6 +51,7 @@ export class FileController {
   @UseInterceptors(FileInterceptor('file'))
   async upload(
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Body('purpose') purpose?: string,
     @Body('displayName') displayName?: string,
@@ -58,7 +63,7 @@ export class FileController {
 
     return this.fileService.upload(
       file,
-      userId || 'anonymous',
+      resolveUserId(user, userId),
       purpose || 'chat',
       displayName,
       fileNameHeader,
@@ -69,16 +74,24 @@ export class FileController {
    * 查询文件元数据
    */
   @Get(':id')
-  async getDetail(@Param('id') id: string, @Headers('x-user-id') userId: string) {
-    return this.fileService.findById(id, userId || undefined);
+  async getDetail(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+  ) {
+    return this.fileService.findById(id, resolveUserId(user, userId));
   }
 
   /**
    * 读取文件解析内容
    */
   @Get(':id/content')
-  async getContent(@Param('id') id: string, @Headers('x-user-id') userId: string) {
-    return this.fileService.getContent(id, userId || undefined);
+  async getContent(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+  ) {
+    return this.fileService.getContent(id, resolveUserId(user, userId));
   }
 
   /**
@@ -88,12 +101,13 @@ export class FileController {
   @SkipResponseEnvelope()
   async download(
     @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { stream, name, mimeType } = await this.fileService.downloadStream(
       id,
-      userId || undefined,
+      resolveUserId(user, userId),
     );
 
     res.setHeader('Content-Type', mimeType);
@@ -107,7 +121,11 @@ export class FileController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  async delete(@Param('id') id: string, @Headers('x-user-id') userId: string) {
-    await this.fileService.softDelete(id, userId || undefined);
+  async delete(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser | undefined,
+    @Headers('x-user-id') userId: string,
+  ) {
+    await this.fileService.softDelete(id, resolveUserId(user, userId));
   }
 }

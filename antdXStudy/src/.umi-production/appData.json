@@ -9,7 +9,14 @@
       "build": "max build",
       "preview": "max preview",
       "setup": "max setup",
-      "prepare": "max setup"
+      "prepare": "max setup",
+      "test": "vitest run",
+      "test:unit": "vitest run src/service src/store",
+      "test:components": "vitest run src/pages",
+      "test:e2e": "playwright test test/e2e",
+      "test:visual": "playwright test test/visual",
+      "test:coverage": "vitest run --coverage",
+      "gray:test": "playwright test --config playwright.gray.config.ts"
     },
     "dependencies": {
       "@ant-design/icons": "^6.2.3",
@@ -25,10 +32,20 @@
       "react-redux": "^8.1.3"
     },
     "devDependencies": {
+      "@axe-core/playwright": "^4.11.3",
+      "@playwright/test": "^1.60.0",
+      "@testing-library/jest-dom": "^6.9.1",
+      "@testing-library/react": "^16.3.2",
+      "@testing-library/user-event": "^14.6.1",
       "@types/react": "^18.2.0",
       "@types/react-dom": "^18.2.0",
       "@umijs/plugins": "^4.6.55",
-      "typescript": "^5.4.0"
+      "@vitejs/plugin-react": "^4.3.4",
+      "@vitest/coverage-v8": "0.34.6",
+      "jsdom": "^22.1.0",
+      "msw": "^2.14.6",
+      "typescript": "^5.4.0",
+      "vitest": "^0.34.6"
     }
   },
   "pkgPath": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/package.json",
@@ -42,7 +59,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -55,7 +72,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 9
+        "register": 4
       },
       "enableBy": "register"
     },
@@ -68,7 +85,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -85,7 +102,7 @@
             0
           ]
         },
-        "register": 3
+        "register": 2
       },
       "enableBy": "register"
     },
@@ -99,7 +116,7 @@
       "time": {
         "hooks": {
           "onStart": [
-            2
+            1
           ]
         },
         "register": 1
@@ -146,10 +163,10 @@
       "time": {
         "hooks": {
           "modifyAppData": [
-            23
+            16
           ]
         },
-        "register": 14
+        "register": 13
       },
       "enableBy": "register"
     },
@@ -162,7 +179,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -182,7 +199,7 @@
             0
           ]
         },
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -199,7 +216,7 @@
             0
           ]
         },
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -229,7 +246,7 @@
             0
           ]
         },
-        "register": 6
+        "register": 4
       },
       "enableBy": "register"
     },
@@ -1095,10 +1112,10 @@
       "time": {
         "hooks": {
           "onStart": [
-            0
+            1
           ]
         },
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1111,7 +1128,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1124,7 +1141,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 47
+        "register": 41
       },
       "enableBy": "register"
     },
@@ -1137,7 +1154,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 24
+        "register": 18
       },
       "enableBy": "config"
     },
@@ -1150,7 +1167,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 10
+        "register": 7
       },
       "enableBy": "config"
     },
@@ -1180,7 +1197,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1193,7 +1210,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1206,7 +1223,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 24
+        "register": 18
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/mpa/mpa": {
@@ -1256,7 +1273,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1273,7 +1290,7 @@
             0
           ]
         },
-        "register": 3
+        "register": 1
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/polyfill/publicPathPolyfill": {
@@ -1285,7 +1302,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1350,7 +1367,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 8
+        "register": 2
       },
       "enableBy": "register"
     },
@@ -1363,7 +1380,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -1376,7 +1393,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/ssr/ssr": {
@@ -1388,7 +1405,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -1401,7 +1418,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 4
+        "register": 2
       },
       "enableBy": "register"
     },
@@ -1414,7 +1431,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1453,7 +1470,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 2
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/monorepo/redirect": {
@@ -1465,7 +1482,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 13
+        "register": 11
       },
       "enableBy": "config"
     },
@@ -1557,7 +1574,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 1
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/mako/mako": {
@@ -1594,7 +1611,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/routePreloadOnLoad/routePreloadOnLoad": {
@@ -1606,7 +1623,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 15
+        "register": 14
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/features/forget/forget": {
@@ -1631,7 +1648,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1644,7 +1661,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 2
       },
       "enableBy": "register"
     },
@@ -1657,7 +1674,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 20
+        "register": 16
       },
       "enableBy": "register"
     },
@@ -1670,7 +1687,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 20
+        "register": 14
       }
     },
     "./node_modules/.pnpm/@umijs+preset-umi@4.6.54_@types+node@25.8.0_@types+react@18.3.28_lightningcss@1.22.1_ro_7fcd2f7c0d5e2c6ac44a8bc11b7725ad/node_modules/@umijs/preset-umi/dist/commands/help": {
@@ -1721,7 +1738,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1734,7 +1751,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 2
       },
       "enableBy": "register"
     },
@@ -1747,7 +1764,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1786,7 +1803,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1799,7 +1816,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1812,7 +1829,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 2
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1851,7 +1868,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -1864,7 +1881,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1916,7 +1933,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 14
+        "register": 11
       },
       "enableBy": "register"
     },
@@ -1929,7 +1946,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -1983,7 +2000,7 @@
       "time": {
         "hooks": {
           "modifyConfig": [
-            3
+            2
           ],
           "modifyAppData": [
             0
@@ -1992,7 +2009,7 @@
             0
           ]
         },
-        "register": 5
+        "register": 3
       }
     },
     "./node_modules/.pnpm/@umijs+plugins@4.6.54_@babel+core@7.23.6_@types+react-dom@18.3.7_@types+react@18.3.28___c1b236db9e8261005fc23aa43a84ff55/node_modules/@umijs/plugins/dist/dva": {
@@ -2004,7 +2021,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 61
+        "register": 57
       },
       "enableBy": "config"
     },
@@ -2017,7 +2034,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -2032,7 +2049,7 @@
       },
       "time": {
         "hooks": {},
-        "register": 4
+        "register": 2
       },
       "enableBy": "config"
     },
@@ -2045,7 +2062,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 3
+        "register": 1
       },
       "enableBy": "config"
     },
@@ -2097,7 +2114,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -2110,7 +2127,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 0
+        "register": 1
       }
     },
     "./node_modules/.pnpm/@umijs+plugins@4.6.54_@babel+core@7.23.6_@types+react-dom@18.3.7_@types+react@18.3.28___c1b236db9e8261005fc23aa43a84ff55/node_modules/@umijs/plugins/dist/qiankun/slave": {
@@ -2160,7 +2177,7 @@
       "config": {},
       "time": {
         "hooks": {},
-        "register": 1
+        "register": 0
       },
       "enableBy": "config"
     },
@@ -2220,7 +2237,7 @@
             0
           ]
         },
-        "register": 1
+        "register": 0
       },
       "enableBy": "register"
     },
@@ -2237,7 +2254,7 @@
             0
           ]
         },
-        "register": 0
+        "register": 1
       },
       "enableBy": "register"
     },
@@ -2262,6 +2279,12 @@
   },
   "userConfig": {
     "title": "Ant Design X 练习",
+    "metas": [
+      {
+        "name": "viewport",
+        "content": "width=device-width, initial-scale=1"
+      }
+    ],
     "esbuildMinifyIIFE": true,
     "antd": {},
     "model": {},
@@ -2276,6 +2299,11 @@
       }
     },
     "routes": [
+      {
+        "path": "/login",
+        "component": "@/pages/login",
+        "title": "登录"
+      },
       {
         "path": "/",
         "title": "示例",
@@ -2390,6 +2418,12 @@
       "@umijs/max": "@@/exports"
     },
     "title": "Ant Design X 练习",
+    "metas": [
+      {
+        "name": "viewport",
+        "content": "width=device-width, initial-scale=1"
+      }
+    ],
     "esbuildMinifyIIFE": true,
     "antd": {},
     "model": {},
@@ -2404,6 +2438,11 @@
       }
     },
     "routes": [
+      {
+        "path": "/login",
+        "component": "@/pages/login",
+        "title": "登录"
+      },
       {
         "path": "/",
         "title": "示例",
@@ -3405,162 +3444,173 @@
   },
   "routes": {
     "1": {
+      "path": "/login",
+      "title": "登录",
+      "file": "@/pages/login/index.tsx",
+      "parentId": "@@/global-layout",
+      "id": "1",
+      "absPath": "/login",
+      "__content": "import { history } from '@umijs/max';\nimport {\n  LoginOutlined,\n  UserAddOutlined,\n  UserOutlined,\n  LockOutlined,\n  MailOutlined,\n} from '@ant-design/icons';\nimport { Button, Form, Input, Segmented, Typography, message } from 'antd';\nimport { useState } from 'react';\nimport { login, register } from '@/service/auth';\nimport './index.css';\n\ntype AuthMode = 'login' | 'register';\n\ninterface LoginFormValues {\n  account?: string;\n  username?: string;\n  email?: string;\n  displayName?: string;\n  password: string;\n}\n\nexport default function LoginPage() {\n  const [mode, setMode] = useState<AuthMode>('login');\n  const [loading, setLoading] = useState(false);\n  const [form] = Form.useForm<LoginFormValues>();\n\n  const submit = async (values: LoginFormValues) => {\n    setLoading(true);\n    try {\n      if (mode === 'login') {\n        await login({\n          account: values.account || '',\n          password: values.password,\n        });\n      } else {\n        await register({\n          username: values.username || '',\n          email: values.email || '',\n          password: values.password,\n          displayName: values.displayName,\n        });\n      }\n\n      message.success(mode === 'login' ? '登录成功' : '注册成功');\n      history.replace('/ai/chat');\n    } catch (error) {\n      message.error(error instanceof Error ? error.message : '认证失败');\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <div className=\"login-page\">\n      <section className=\"login-panel\">\n        <Typography.Title level={2} className=\"login-title\">\n          AI Agent\n        </Typography.Title>\n        <Segmented\n          block\n          value={mode}\n          onChange={(value) => {\n            setMode(value as AuthMode);\n            form.resetFields();\n          }}\n          options={[\n            { label: '登录', value: 'login', icon: <LoginOutlined /> },\n            { label: '注册', value: 'register', icon: <UserAddOutlined /> },\n          ]}\n        />\n        <Form\n          className=\"login-form\"\n          form={form}\n          layout=\"vertical\"\n          onFinish={submit}\n          requiredMark={false}\n        >\n          {mode === 'login' ? (\n            <Form.Item\n              name=\"account\"\n              label=\"账号\"\n              rules={[{ required: true, message: '请输入用户名或邮箱' }]}\n            >\n              <Input prefix={<UserOutlined />} placeholder=\"用户名或邮箱\" />\n            </Form.Item>\n          ) : (\n            <>\n              <Form.Item\n                name=\"username\"\n                label=\"用户名\"\n                rules={[\n                  { required: true, message: '请输入用户名' },\n                  { min: 3, max: 32, message: '用户名长度为 3-32 位' },\n                ]}\n              >\n                <Input prefix={<UserOutlined />} placeholder=\"demo\" />\n              </Form.Item>\n              <Form.Item\n                name=\"email\"\n                label=\"邮箱\"\n                rules={[\n                  { required: true, message: '请输入邮箱' },\n                  { type: 'email', message: '邮箱格式不正确' },\n                ]}\n              >\n                <Input prefix={<MailOutlined />} placeholder=\"demo@example.com\" />\n              </Form.Item>\n              <Form.Item name=\"displayName\" label=\"显示名\">\n                <Input prefix={<UserOutlined />} placeholder=\"可选\" />\n              </Form.Item>\n            </>\n          )}\n\n          <Form.Item\n            name=\"password\"\n            label=\"密码\"\n            rules={[\n              { required: true, message: '请输入密码' },\n              { min: mode === 'register' ? 8 : 1, message: '密码至少 8 位' },\n            ]}\n          >\n            <Input.Password prefix={<LockOutlined />} placeholder=\"密码\" />\n          </Form.Item>\n          <Button\n            block\n            htmlType=\"submit\"\n            icon={mode === 'login' ? <LoginOutlined /> : <UserAddOutlined />}\n            loading={loading}\n            type=\"primary\"\n          >\n            {mode === 'login' ? '登录' : '注册'}\n          </Button>\n        </Form>\n      </section>\n    </div>\n  );\n}\n",
+      "__isJSFile": true,
+      "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/login/index.tsx"
+    },
+    "2": {
       "path": "/",
       "title": "示例",
       "parentId": "@@/global-layout",
-      "id": "1",
-      "absPath": "/"
-    },
-    "2": {
-      "path": "",
-      "redirect": "/ai/chat",
-      "parentId": "1",
       "id": "2",
       "absPath": "/"
     },
     "3": {
+      "path": "",
+      "redirect": "/ai/chat",
+      "parentId": "2",
+      "id": "3",
+      "absPath": "/"
+    },
+    "4": {
       "path": "/bubble",
       "title": "Bubble 气泡",
       "file": "@/pages/example/bubble.tsx",
-      "parentId": "1",
-      "id": "3",
+      "parentId": "2",
+      "id": "4",
       "absPath": "/bubble",
       "__content": "import { Bubble } from '@ant-design/x';\nimport { Card, Space, Switch, Typography } from 'antd';\nimport { UserOutlined, RobotOutlined } from '@ant-design/icons';\nimport { useState } from 'react';\n\nconst { Text } = Typography;\n\nexport default function BubblePage() {\n  const [typing, setTyping] = useState(false);\n  const demoMessages = [\n    { content: 'Hello! 这是一条来自 AI 助手的消息。', placement: 'start' as const },\n    { content: '你好！我想了解 Ant Design X 的 Bubble 组件。', placement: 'end' as const },\n    {\n      content: 'Bubble 组件用于在聊天界面中显示消息气泡，支持多种 placement、avatar、typing 等属性。',\n      placement: 'start' as const,\n    },\n    {\n      content: '你可以自定义气泡的样式、头像、加载状态等，非常适合构建 AI 对话界面。',\n      placement: 'start' as const,\n    },\n    { content: '太棒了，谢谢你的介绍！', placement: 'end' as const },\n  ];\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card\n        title=\"Bubble 气泡\"\n        extra={\n          <Space>\n            <Text>typing 效果</Text>\n            <Switch checked={typing} onChange={setTyping} />\n          </Space>\n        }\n        style={{ marginBottom: 24 }}\n      >\n        <Bubble.List\n          items={demoMessages.map((msg, i) => ({\n            key: String(i),\n            content: msg.content,\n            placement: msg.placement,\n            avatar: msg.placement === 'start' ? <RobotOutlined /> : <UserOutlined />,\n            typing: i === demoMessages.length - 1 ? typing : undefined,\n            role: msg.placement === 'start' ? 'assistant' : 'user',\n          }))}\n        />\n      </Card>\n\n      <Card title=\"Bubble.List 变体\" style={{ marginBottom: 24 }}>\n        <Bubble content=\"圆角气泡 - 默认样式 corr\" placement=\"start\" />\n        <Bubble content=\"sharp 尖角风格\" placement=\"end\" shape=\"corner\" />\n        <Bubble content=\"round 圆角风格\" placement=\"start\" shape=\"round\" />\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/bubble.tsx"
     },
-    "4": {
+    "5": {
       "path": "/welcome",
       "title": "Welcome 欢迎",
       "file": "@/pages/example/welcome.tsx",
-      "parentId": "1",
-      "id": "4",
+      "parentId": "2",
+      "id": "5",
       "absPath": "/welcome",
       "__content": "import { Welcome } from '@ant-design/x';\nimport { Card, Space } from 'antd';\nimport { SmileOutlined, CodeOutlined, ThunderboltOutlined } from '@ant-design/icons';\n\nexport default function WelcomePage() {\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"Welcome 欢迎组件\" style={{ marginBottom: 24 }}>\n        <Welcome\n          icon={<SmileOutlined style={{ fontSize: 48, color: '#1677ff' }} />}\n          title=\"欢迎使用 Ant Design X\"\n          description=\"Ant Design X 是一套基于 Ant Design 的 AI 界面解决方案，提供丰富的 AI 交互组件，帮助你快速构建优秀的 AI 产品界面。\"\n        />\n      </Card>\n\n      <Card title=\"Welcome 变体展示\" style={{ marginBottom: 24 }}>\n        <Space direction=\"vertical\" size={48} style={{ width: '100%' }}>\n          <Welcome\n            icon={<CodeOutlined style={{ fontSize: 36, color: '#52c41a' }} />}\n            title=\"极速开发体验\"\n            description=\"开箱即用的 AI 组件，配合 Umi Max 脚手架，分钟级搭建 AI 应用界面。\"\n            actions={[\n              { key: 'start', label: '开始使用', type: 'primary' },\n              { key: 'docs', label: '查看文档' },\n            ]}\n          />\n          <Welcome\n            icon={<ThunderboltOutlined style={{ fontSize: 36, color: '#faad14' }} />}\n            title=\"丰富的 AI 交互模式\"\n            description=\"支持流式输出、思考过程展示、智能建议等多种 AI 交互模式，满足不同场景需求。\"\n          />\n        </Space>\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/welcome.tsx"
     },
-    "5": {
+    "6": {
       "path": "/prompt",
       "title": "Prompt 提示",
       "file": "@/pages/example/prompt.tsx",
-      "parentId": "1",
-      "id": "5",
+      "parentId": "2",
+      "id": "6",
       "absPath": "/prompt",
       "__content": "import { Prompts } from '@ant-design/x';\nimport { Card, Space } from 'antd';\nimport {\n  CodeOutlined,\n  FileTextOutlined,\n  TranslationOutlined,\n  BugOutlined,\n  PictureOutlined,\n  SearchOutlined,\n} from '@ant-design/icons';\n\nexport default function PromptPage() {\n  const textPrompts = {\n    items: [\n      {\n        key: 'code',\n        label: '帮我写一段代码',\n        icon: <CodeOutlined />,\n        description: '用 TypeScript 实现一个排序算法',\n      },\n      {\n        key: 'article',\n        label: '写一篇文章',\n        icon: <FileTextOutlined />,\n        description: '关于 React 18 新特性的介绍',\n      },\n      {\n        key: 'translate',\n        label: '翻译文本',\n        icon: <TranslationOutlined />,\n        description: '将中文翻译成英文',\n      },\n      {\n        key: 'debug',\n        label: '调试代码',\n        icon: <BugOutlined />,\n        description: '帮我找出这段代码的问题',\n      },\n      {\n        key: 'image',\n        label: '生成图片描述',\n        icon: <PictureOutlined />,\n        description: '为图片生成详细的描述文本',\n      },\n      {\n        key: 'research',\n        label: '搜索资料',\n        icon: <SearchOutlined />,\n        description: '帮我查找最新的技术资料',\n      },\n    ],\n  };\n\n  const simplePrompts = {\n    items: ['什么是 React？', '写一个快速排序', '解释闭包原理', 'Vue 和 React 的区别'],\n  };\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"Prompts 提示 - 完整模式\" style={{ marginBottom: 24 }}>\n        <Prompts\n          title=\"你可以这样问我：\"\n          items={textPrompts.items}\n          onItemClick={(info) => {\n            console.log('点击了提示:', info);\n          }}\n        />\n      </Card>\n\n      <Card title=\"Prompts 提示 - 简洁模式\" style={{ marginBottom: 24 }}>\n        <Prompts\n          title=\"快捷问题\"\n          items={simplePrompts.items}\n          onItemClick={(info) => {\n            console.log('点击了:', info);\n          }}\n        />\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/prompt.tsx"
     },
-    "6": {
+    "7": {
       "path": "/think",
       "title": "Think 思考",
       "file": "@/pages/example/think.tsx",
-      "parentId": "1",
-      "id": "6",
+      "parentId": "2",
+      "id": "7",
       "absPath": "/think",
       "__content": "import { ThoughtChain } from '@ant-design/x';\nimport { Card, Button, Space } from 'antd';\nimport { useState } from 'react';\nimport {\n  CheckCircleOutlined,\n  LoadingOutlined,\n  SearchOutlined,\n  CodeOutlined,\n  DatabaseOutlined,\n} from '@ant-design/icons';\n\nexport default function ThinkPage() {\n  const [running, setRunning] = useState(false);\n  const [items, setItems] = useState<\n    { title: string; description: string; status: 'pending' | 'loading' | 'success' | 'error'; icon: React.ReactNode }[]\n  >([\n    { title: '理解问题', description: '', status: 'pending', icon: <SearchOutlined /> },\n    { title: '查询资料', description: '', status: 'pending', icon: <DatabaseOutlined /> },\n    { title: '分析计算', description: '', status: 'pending', icon: <CodeOutlined /> },\n    { title: '生成回答', description: '', status: 'pending', icon: <CheckCircleOutlined /> },\n  ]);\n\n  const startThinking = async () => {\n    setRunning(true);\n    setItems((prev) => prev.map((item) => ({ ...item, status: 'pending' as const, description: '' })));\n\n    const steps = [\n      { index: 0, desc: '正在分析用户输入的问题...' },\n      { index: 1, desc: '正在检索相关技术文档和资料...' },\n      { index: 2, desc: '正在综合分析和推理计算...' },\n      { index: 3, desc: '生成最终回复，包含代码示例和解释...' },\n    ];\n\n    for (const step of steps) {\n      setItems((prev) =>\n        prev.map((item, i) =>\n          i === step.index ? { ...item, status: 'loading' as const, description: step.desc } : item,\n        ),\n      );\n      await new Promise((r) => setTimeout(r, 1000 + Math.random() * 1000));\n      setItems((prev) =>\n        prev.map((item, i) =>\n          i === step.index ? { ...item, status: 'success' as const } : item,\n        ),\n      );\n    }\n\n    setRunning(false);\n  };\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card\n        title=\"Think 思考链 - ThoughtChain\"\n        extra={\n          <Button type=\"primary\" onClick={startThinking} loading={running}>\n            {running ? '思考中...' : '开始演示'}\n          </Button>\n        }\n        style={{ marginBottom: 24 }}\n      >\n        <ThoughtChain\n          items={items.map((item) => ({\n            key: item.title,\n            title: item.title,\n            description: item.description || undefined,\n            status: item.status,\n            icon: item.status === 'loading' ? <LoadingOutlined spin /> : item.icon,\n          }))}\n        />\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/think.tsx"
     },
-    "7": {
+    "8": {
       "path": "/suggestion",
       "title": "Suggestion 建议",
       "file": "@/pages/example/suggestion.tsx",
-      "parentId": "1",
-      "id": "7",
+      "parentId": "2",
+      "id": "8",
       "absPath": "/suggestion",
       "__content": "import { Suggestion } from '@ant-design/x';\nimport { Card, Space } from 'antd';\n\nexport default function SuggestionPage() {\n  const quickSuggestions = [\n    { label: '支持流式输出', value: 'stream' },\n    { label: '多语言切换', value: 'i18n' },\n    { label: '暗色模式', value: 'dark' },\n  ];\n\n  const contextSuggestions = [\n    { label: '👍 写得好', value: 'good' },\n    { label: '🔄 重新生成', value: 'regenerate' },\n    { label: '📝 继续写完', value: 'continue' },\n    { label: '📋 复制内容', value: 'copy' },\n    { label: '🌐 翻译成英文', value: 'translate' },\n  ];\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"Suggestion 快捷建议\" style={{ marginBottom: 24 }}>\n        <Space direction=\"vertical\" size={32} style={{ width: '100%' }}>\n          <div>\n            <h4>输入建议 - 消息发送前的快速提问</h4>\n            <Suggestion\n              items={quickSuggestions}\n              onSelect={(item) => {\n                console.log('选择了:', item);\n              }}\n            />\n          </div>\n\n          <div>\n            <h4>上下文建议 - AI 回复后的操作选项</h4>\n            <Suggestion\n              items={contextSuggestions}\n              onSelect={(item) => {\n                console.log('选择了:', item);\n              }}\n            />\n          </div>\n        </Space>\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/suggestion.tsx"
     },
-    "8": {
+    "9": {
       "path": "/sender",
       "title": "Sender 发送",
       "file": "@/pages/example/sender.tsx",
-      "parentId": "1",
-      "id": "8",
+      "parentId": "2",
+      "id": "9",
       "absPath": "/sender",
       "__content": "import { Sender } from '@ant-design/x';\nimport { Card, Space, Switch, Typography } from 'antd';\nimport { useState } from 'react';\n\nconst { Text } = Typography;\n\nexport default function SenderPage() {\n  const [value, setValue] = useState('');\n  const [loading, setLoading] = useState(false);\n  const [allowSpeech, setAllowSpeech] = useState(true);\n\n  const handleSubmit = async (text: string) => {\n    setLoading(true);\n    console.log('发送消息:', text);\n    await new Promise((r) => setTimeout(r, 2000));\n    setLoading(false);\n    setValue('');\n  };\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"Sender 发送组件\" style={{ marginBottom: 24 }}>\n        <Space direction=\"vertical\" size={16} style={{ width: '100%' }}>\n          <Space>\n            <Text>语音输入:</Text>\n            <Switch checked={allowSpeech} onChange={setAllowSpeech} />\n          </Space>\n\n          <Sender\n            value={value}\n            onChange={setValue}\n            onSubmit={handleSubmit}\n            loading={loading}\n            allowSpeech={allowSpeech}\n            placeholder=\"输入消息并按 Enter 发送...\"\n          />\n\n          <Card title=\"发送记录\" size=\"small\">\n            <div style={{ color: '#999' }}>\n              {value ? `当前输入: ${value}` : '在上方输入框输入消息'}\n            </div>\n          </Card>\n        </Space>\n      </Card>\n\n      <Card title=\"Sender 属性说明\" style={{ marginBottom: 24 }}>\n        <Space direction=\"vertical\">\n          <Text>\n            <Text strong>onSubmit(val)</Text> - 用户提交消息时的回调\n          </Text>\n          <Text>\n            <Text strong>loading</Text> - 发送中的加载状态\n          </Text>\n          <Text>\n            <Text strong>allowSpeech</Text> - 是否启用语音输入\n          </Text>\n          <Text>\n            <Text strong>placeholder</Text> - 输入框占位提示文本\n          </Text>\n        </Space>\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/sender.tsx"
     },
-    "9": {
+    "10": {
       "path": "/markdown",
       "title": "X Markdown",
       "file": "@/pages/example/markdown.tsx",
-      "parentId": "1",
-      "id": "9",
+      "parentId": "2",
+      "id": "10",
       "absPath": "/markdown",
       "__content": "import { XMarkdown } from '@ant-design/x-markdown';\nimport '@ant-design/x-markdown/themes/light.css';\nimport '@ant-design/x-markdown/themes/dark.css';\nimport { Button, Card, Flex, Space, Switch, Typography, theme } from 'antd';\nimport { useEffect, useRef, useState } from 'react';\n\nconst { Text } = Typography;\n\nconst staticContent = `# Hello XMarkdown\n\n面向大模型输出的**流式友好** Markdown 渲染引擎。\n\n## 特性\n\n- 流式渲染与语法补全\n- 可扩展组件映射（\\`components\\`）\n- 支持代码高亮、公式、Mermaid 等插件\n\n行内代码：\\`npm install @ant-design/x-markdown\\`\n\n[查看官方文档](https://x.ant.design/x-markdowns/introduce)\n`;\n\nconst streamText = `# Ant Design X Markdown\n\n这是一段**模拟流式输出**的 Markdown 内容，用于演示 \\`streaming.hasNextChunk\\` 与尾部光标效果。\n\n- 支持 GFM 语法\n- 适合 LLM 逐字输出场景\n\n> 点击「开始流式」查看效果。\n`;\n\nexport default function MarkdownPage() {\n  const { token } = theme.useToken();\n  const themeClass = token.id === 0 ? 'x-markdown-light' : 'x-markdown-dark';\n\n  const [streamIndex, setStreamIndex] = useState(0);\n  const [streaming, setStreaming] = useState(false);\n  const [enableAnimation, setEnableAnimation] = useState(true);\n  const [showTail, setShowTail] = useState(true);\n  const timerRef = useRef<ReturnType<typeof setTimeout>>();\n\n  useEffect(() => {\n    if (!streaming) return undefined;\n\n    if (streamIndex >= streamText.length) {\n      setStreaming(false);\n      return undefined;\n    }\n\n    timerRef.current = setTimeout(() => {\n      setStreamIndex((prev) => Math.min(prev + 2, streamText.length));\n    }, 40);\n\n    return () => {\n      if (timerRef.current) clearTimeout(timerRef.current);\n    };\n  }, [streamIndex, streaming]);\n\n  const startStream = () => {\n    setStreamIndex(0);\n    setStreaming(true);\n  };\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"X Markdown - 基础渲染\" style={{ marginBottom: 24 }}>\n        <XMarkdown className={themeClass} content={staticContent} />\n      </Card>\n\n      <Card\n        title=\"X Markdown - 流式渲染\"\n        extra={\n          <Space>\n            <Text type=\"secondary\">动画</Text>\n            <Switch size=\"small\" checked={enableAnimation} onChange={setEnableAnimation} />\n            <Text type=\"secondary\">光标</Text>\n            <Switch size=\"small\" checked={showTail} onChange={setShowTail} />\n            <Button type=\"primary\" size=\"small\" onClick={startStream} loading={streaming}>\n              开始流式\n            </Button>\n          </Space>\n        }\n      >\n        <Flex vertical gap={12}>\n          <XMarkdown\n            className={themeClass}\n            content={streamText.slice(0, streamIndex)}\n            streaming={{\n              hasNextChunk: streaming,\n              enableAnimation,\n              tail: showTail ? { content: '▋' } : false,\n            }}\n          />\n          <Text type=\"secondary\">\n            进度：{streamIndex} / {streamText.length}\n          </Text>\n        </Flex>\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/markdown.tsx"
     },
-    "10": {
+    "11": {
       "path": "/card",
       "title": "X Card",
       "file": "@/pages/example/card.tsx",
-      "parentId": "1",
-      "id": "10",
+      "parentId": "2",
+      "id": "11",
       "absPath": "/card",
       "__content": "import type { ActionPayload, Catalog, XAgentCommand_v0_9 } from '@ant-design/x-card';\nimport { Box, Card as XCardSurface, registerCatalog } from '@ant-design/x-card';\nimport { Alert, Button, Card, Space, Typography } from 'antd';\nimport { useCallback, useMemo, useState } from 'react';\n\nconst CATALOG_ID = 'local://antd-x-study-catalog';\n\nconst catalog: Catalog = {\n  catalogId: CATALOG_ID,\n  components: {\n    Text: {\n      type: 'object',\n      properties: { component: { const: 'Text' } },\n    },\n    Column: {\n      type: 'object',\n      properties: {\n        component: { const: 'Column' },\n        children: { type: 'array', items: { type: 'string' } },\n      },\n    },\n    SubmitButton: {\n      type: 'object',\n      properties: {\n        component: { const: 'SubmitButton' },\n        child: { type: 'string' },\n        action: { type: 'object' },\n      },\n    },\n  },\n};\n\nregisterCatalog(catalog);\n\ninterface TextProps {\n  text?: string;\n  variant?: string;\n}\n\nconst Text: React.FC<TextProps> = ({ text, variant }) => {\n  if (variant === 'h2') return <Typography.Title level={4}>{text}</Typography.Title>;\n  return <Typography.Paragraph style={{ marginBottom: 0 }}>{text}</Typography.Paragraph>;\n};\n\nconst Column: React.FC<{ children?: React.ReactNode }> = ({ children }) => (\n  <Space direction=\"vertical\" size={12} style={{ width: '100%' }}>\n    {children}\n  </Space>\n);\n\ninterface SubmitButtonProps {\n  text?: string;\n  children?: React.ReactNode;\n  onAction?: (name: string, context: Record<string, unknown>) => void;\n  action?: { event?: { name?: string; context?: Record<string, unknown> } };\n}\n\nconst SubmitButton: React.FC<SubmitButtonProps> = ({ text, children, onAction, action }) => (\n  <Button\n    type=\"primary\"\n    onClick={() => {\n      if (action?.event?.name) {\n        onAction?.(action.event.name, action.event.context || {});\n      }\n    }}\n  >\n    {text || children}\n  </Button>\n);\n\nconst INITIAL_COMMANDS: XAgentCommand_v0_9[] = [\n  {\n    version: 'v0.9',\n    createSurface: { surfaceId: 'demo', catalogId: CATALOG_ID },\n  },\n  {\n    version: 'v0.9',\n    updateComponents: {\n      surfaceId: 'demo',\n      components: [\n        { id: 'title', component: 'Text', text: 'X Card 动态卡片', variant: 'h2' },\n        { id: 'desc', component: 'Text', text: '基于 A2UI v0.9 协议，Agent 可通过 JSON 命令流式构建界面。' },\n        {\n          id: 'submit',\n          component: 'SubmitButton',\n          text: '点击提交',\n          action: { event: { name: 'demo_submit', context: { source: 'study-demo' } } },\n        },\n        { id: 'root', component: 'Column', children: ['title', 'desc', 'submit'] },\n      ],\n    },\n  },\n  {\n    version: 'v0.9',\n    updateDataModel: {\n      surfaceId: 'demo',\n      path: '/demo',\n      value: { ready: true },\n    },\n  },\n];\n\nexport default function CardPage() {\n  const [commands, setCommands] = useState<XAgentCommand_v0_9[]>([]);\n  const [actionLog, setActionLog] = useState<string>('');\n\n  const components = useMemo(\n    () => ({ Text, Column, SubmitButton }),\n    [],\n  );\n\n  const loadDemo = useCallback(() => {\n    setCommands(INITIAL_COMMANDS);\n    setActionLog('');\n  }, []);\n\n  const handleAction = useCallback((payload: ActionPayload) => {\n    setActionLog(`事件：${payload.name}，surfaceId：${payload.surfaceId}`);\n  }, []);\n\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card\n        title=\"X Card - A2UI 动态卡片\"\n        extra={\n          <Button type=\"primary\" onClick={loadDemo}>\n            加载演示卡片\n          </Button>\n        }\n        style={{ marginBottom: 24 }}\n      >\n        <Box components={components} commands={commands} onAction={handleAction}>\n          {commands.length > 0 && <XCardSurface id=\"demo\" />}\n        </Box>\n        {commands.length === 0 && (\n          <Typography.Text type=\"secondary\">点击「加载演示卡片」查看 A2UI 渲染效果</Typography.Text>\n        )}\n        {actionLog && (\n          <Alert style={{ marginTop: 16 }} type=\"success\" message={actionLog} showIcon />\n        )}\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/card.tsx"
     },
-    "11": {
+    "12": {
       "path": "/skill",
       "title": "X Skill",
       "file": "@/pages/example/skill.tsx",
-      "parentId": "1",
-      "id": "11",
+      "parentId": "2",
+      "id": "12",
       "absPath": "/skill",
       "__content": "import { Card, Col, Row, Steps, Typography } from 'antd';\nimport {\n  CodeOutlined,\n  RocketOutlined,\n  ToolOutlined,\n} from '@ant-design/icons';\n\nconst { Title, Paragraph, Text, Link } = Typography;\n\nconst installSteps = [\n  {\n    title: '全局安装',\n    description: 'npm i -g @ant-design/x-skill',\n  },\n  {\n    title: '注册到 IDE',\n    description: '在项目根目录执行 npx x-skill',\n  },\n  {\n    title: '在 Cursor 中使用',\n    description: 'Agent 将自动加载 Ant Design X 最佳实践技能',\n  },\n];\n\nconst skillScenarios = [\n  {\n    icon: <RocketOutlined style={{ fontSize: 28, color: '#1677ff' }} />,\n    title: '新项目搭建',\n    description: '快速脚手架 Ant Design X 项目结构、路由与 Provider 配置',\n  },\n  {\n    icon: <CodeOutlined style={{ fontSize: 28, color: '#52c41a' }} />,\n    title: '组件开发',\n    description: 'Bubble、Sender、useXChat 等组件的用法与代码示例',\n  },\n  {\n    icon: <ToolOutlined style={{ fontSize: 28, color: '#faad14' }} />,\n    title: '问题排查',\n    description: '流式渲染、Provider 接入、样式兼容等常见问题诊断',\n  },\n];\n\nexport default function SkillPage() {\n  return (\n    <div style={{ maxWidth: 800, margin: '0 auto' }}>\n      <Card title=\"X Skill - 智能技能库\" style={{ marginBottom: 24 }}>\n        <Paragraph>\n          <Text strong>@ant-design/x-skill</Text> 是面向 Ant Design X 的 Agent\n          技能库，面向 Cursor、Claude Code 等 IDE，帮助你在开发时获得官方最佳实践与示例代码。\n          它<strong>不是</strong> React 运行时组件，需在本地或 IDE 中安装使用。\n        </Paragraph>\n\n        <Title level={5} style={{ marginTop: 24 }}>\n          安装步骤\n        </Title>\n        <Steps direction=\"vertical\" size=\"small\" current={-1} items={installSteps} />\n\n        <Title level={5} style={{ marginTop: 24 }}>\n          常用命令\n        </Title>\n        <pre\n          style={{\n            background: '#f5f5f5',\n            padding: 16,\n            borderRadius: 8,\n            fontSize: 13,\n            overflow: 'auto',\n          }}\n        >\n{`# 安装最新版\nnpm i -g @ant-design/x-skill\nnpx x-skill\n\n# 查看版本\nx-skill --list-versions\n\n# 安装指定版本\nx-skill --tag 2.7.0`}\n        </pre>\n\n        <Title level={5} style={{ marginTop: 24 }}>\n          适用场景\n        </Title>\n        <Row gutter={[16, 16]}>\n          {skillScenarios.map((item) => (\n            <Col span={24} key={item.title}>\n              <Card size=\"small\">\n                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>\n                  {item.icon}\n                  <div>\n                    <Text strong>{item.title}</Text>\n                    <br />\n                    <Text type=\"secondary\">{item.description}</Text>\n                  </div>\n                </div>\n              </Card>\n            </Col>\n          ))}\n        </Row>\n\n        <Paragraph style={{ marginTop: 24, marginBottom: 0 }}>\n          更多技能列表与 Claude 插件安装方式，见{' '}\n          <Link href=\"https://x.ant.design/x-skills/introduce\" target=\"_blank\">\n            官方文档\n          </Link>\n          。\n        </Paragraph>\n      </Card>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/example/skill.tsx"
     },
-    "12": {
+    "13": {
       "path": "/ai",
       "title": "AI",
       "parentId": "@@/global-layout",
-      "id": "12",
-      "absPath": "/ai"
-    },
-    "13": {
-      "path": "",
-      "redirect": "/ai/chat",
-      "parentId": "12",
       "id": "13",
       "absPath": "/ai"
     },
     "14": {
+      "path": "",
+      "redirect": "/ai/chat",
+      "parentId": "13",
+      "id": "14",
+      "absPath": "/ai"
+    },
+    "15": {
       "path": "/ai/chat",
       "title": "Chat 聊天",
       "file": "@/pages/base/index.tsx",
-      "parentId": "12",
-      "id": "14",
+      "parentId": "13",
+      "id": "15",
       "absPath": "/ai/chat",
-      "__content": "import { FC } from \"react\";\nimport BaseLayout from \"./components/BaseLayout\";\n\nconst Base: FC = () => {\n  return <div className=\"base-index\" style={{ height: '100%' }}>\n    <BaseLayout />\n  </div>;\n};\n\nexport default Base;",
+      "__content": "import { FC } from \"react\";\nimport BaseLayout from \"./components/BaseLayout\";\n\nconst Base: FC = () => {\n  return <div className=\"base-index\" style={{ height: '100%', width: '100%' }}>\n    <BaseLayout />\n  </div>;\n};\n\nexport default Base;\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/base/index.tsx"
     },
-    "15": {
+    "16": {
       "path": "/ai/models",
       "title": "模型管理",
       "file": "@/pages/base/models/index.tsx",
-      "parentId": "12",
-      "id": "15",
+      "parentId": "13",
+      "id": "16",
       "absPath": "/ai/models",
       "__content": "import {\n  Alert,\n  Badge,\n  Button,\n  Empty,\n  Form,\n  Input,\n  InputNumber,\n  Modal,\n  Popconfirm,\n  Select,\n  Space,\n  Switch,\n  Table,\n  Tabs,\n  Tag,\n  Tooltip,\n  Typography,\n  message,\n} from 'antd';\nimport {\n  ApiOutlined,\n  CloudServerOutlined,\n  DeleteOutlined,\n  EditOutlined,\n  ExperimentOutlined,\n  PlusOutlined,\n  StarOutlined,\n} from '@ant-design/icons';\nimport { useCallback, useEffect, useMemo, useState } from 'react';\nimport type { ColumnsType } from 'antd/es/table';\nimport {\n  createCredential,\n  createModel,\n  createProvider,\n  deleteCredential,\n  deleteModel,\n  deleteProvider,\n  fetchProvider,\n  fetchProviders,\n  setDefaultCredential,\n  setDefaultModel,\n  updateCredential,\n  updateModel,\n  updateProvider,\n  validateCredential,\n  type AdapterType,\n  type CredentialPayload,\n  type ModelPayload,\n  type ModelProvider,\n  type ModelType,\n  type ProviderCredential,\n  type ProviderModel,\n  type UpdateCredentialPayload,\n  type UpdateModelPayload,\n} from '@/service/platform';\n\nconst { Text, Title } = Typography;\nconst { TextArea } = Input;\n\nconst modelTypeTabs: Array<{ key: ModelType; label: string }> = [\n  { key: 'llm', label: '聊天模型' },\n  { key: 'text-embedding', label: 'Embedding' },\n  { key: 'rerank', label: 'Rerank' },\n  { key: 'speech-to-text', label: '语音识别' },\n  { key: 'tts', label: '语音合成' },\n  { key: 'image', label: '图像' },\n];\n\nconst adapterOptions: Array<{ label: string; value: AdapterType }> = [\n  { label: 'OpenAI-compatible', value: 'openai-compatible' },\n  { label: 'Anthropic（预留）', value: 'anthropic' },\n  { label: 'Gemini（预留）', value: 'gemini' },\n];\n\nfunction parseJsonField(value?: string) {\n  if (!value?.trim()) return undefined;\n  return JSON.parse(value);\n}\n\nfunction formatJsonField(value: unknown) {\n  if (!value) return '';\n  return JSON.stringify(value, null, 2);\n}\n\nfunction parseFeatures(value?: string) {\n  if (!value?.trim()) return [];\n  return value\n    .split(',')\n    .map((item) => item.trim())\n    .filter(Boolean);\n}\n\nexport default function ModelManagementPage() {\n  const [providers, setProviders] = useState<ModelProvider[]>([]);\n  const [selectedProviderId, setSelectedProviderId] = useState<string>();\n  const [providerDetail, setProviderDetail] = useState<ModelProvider>();\n  const [activeTab, setActiveTab] = useState<string>('llm');\n  const [activeModelType, setActiveModelType] = useState<ModelType>('llm');\n  const [loading, setLoading] = useState(false);\n  const [detailLoading, setDetailLoading] = useState(false);\n\n  const [providerModalOpen, setProviderModalOpen] = useState(false);\n  const [editingProvider, setEditingProvider] = useState<ModelProvider>();\n  const [providerForm] = Form.useForm();\n\n  const [credentialModalOpen, setCredentialModalOpen] = useState(false);\n  const [editingCredential, setEditingCredential] = useState<ProviderCredential>();\n  const [credentialForm] = Form.useForm();\n\n  const [modelModalOpen, setModelModalOpen] = useState(false);\n  const [editingModel, setEditingModel] = useState<ProviderModel>();\n  const [modelForm] = Form.useForm();\n\n  const selectedProvider = providerDetail ?? providers.find((item) => item.id === selectedProviderId);\n  const currentModels = useMemo(\n    () => providerDetail?.modelsByType?.[activeModelType] ?? [],\n    [activeModelType, providerDetail?.modelsByType],\n  );\n\n  const loadProviders = useCallback(async () => {\n    setLoading(true);\n    try {\n      const data = await fetchProviders();\n      setProviders(data);\n      setSelectedProviderId((current) => current ?? data[0]?.id);\n    } catch {\n      message.error('加载模型供应商失败');\n    } finally {\n      setLoading(false);\n    }\n  }, []);\n\n  const loadProviderDetail = useCallback(async (id: string) => {\n    setDetailLoading(true);\n    try {\n      const data = await fetchProvider(id);\n      setProviderDetail(data);\n    } catch {\n      message.error('加载供应商详情失败');\n    } finally {\n      setDetailLoading(false);\n    }\n  }, []);\n\n  const refreshCurrent = useCallback(async () => {\n    await loadProviders();\n    if (selectedProviderId) {\n      await loadProviderDetail(selectedProviderId);\n    }\n  }, [loadProviderDetail, loadProviders, selectedProviderId]);\n\n  useEffect(() => {\n    loadProviders();\n  }, [loadProviders]);\n\n  useEffect(() => {\n    if (selectedProviderId) {\n      loadProviderDetail(selectedProviderId);\n    } else {\n      setProviderDetail(undefined);\n    }\n  }, [loadProviderDetail, selectedProviderId]);\n\n  const openCreateProvider = () => {\n    setEditingProvider(undefined);\n    providerForm.resetFields();\n    providerForm.setFieldsValue({\n      enabled: true,\n      providerType: 'custom',\n      adapterType: 'openai-compatible',\n    });\n    setProviderModalOpen(true);\n  };\n\n  const openEditProvider = (provider: ModelProvider) => {\n    setEditingProvider(provider);\n    providerForm.setFieldsValue({\n      name: provider.name,\n      displayName: provider.displayName,\n      providerType: provider.providerType,\n      baseUrl: provider.baseUrl,\n      adapterType: provider.adapterType,\n      iconUrl: provider.iconUrl,\n      enabled: provider.enabled,\n    });\n    setProviderModalOpen(true);\n  };\n\n  const handleProviderSubmit = async () => {\n    const values = await providerForm.validateFields();\n    try {\n      if (editingProvider) {\n        const { name: _, ...payload } = values;\n        await updateProvider(editingProvider.id, payload);\n        message.success('供应商已更新');\n      } else {\n        await createProvider(values);\n        message.success('供应商已创建');\n      }\n      setProviderModalOpen(false);\n      await refreshCurrent();\n    } catch {\n      message.error(editingProvider ? '更新供应商失败' : '创建供应商失败');\n    }\n  };\n\n  const handleDeleteProvider = async (provider: ModelProvider) => {\n    try {\n      await deleteProvider(provider.id);\n      message.success('供应商已禁用');\n      setSelectedProviderId(undefined);\n      await loadProviders();\n    } catch {\n      message.error('禁用供应商失败');\n    }\n  };\n\n  const openCreateCredential = () => {\n    credentialForm.resetFields();\n    setEditingCredential(undefined);\n    credentialForm.setFieldsValue({ enabled: true, isDefault: !selectedProvider?.credentials.length });\n    setCredentialModalOpen(true);\n  };\n\n  const openEditCredential = (credential: ProviderCredential) => {\n    setEditingCredential(credential);\n    credentialForm.setFieldsValue({\n      name: credential.name,\n      apiKey: '',\n      baseUrl: credential.maskedConfig.baseUrl,\n      isDefault: credential.isDefault,\n      enabled: credential.enabled,\n    });\n    setCredentialModalOpen(true);\n  };\n\n  const handleCredentialSubmit = async () => {\n    if (!selectedProvider) return;\n    const values = await credentialForm.validateFields();\n    const config = {\n      apiKey: values.apiKey,\n      baseUrl: values.baseUrl,\n    };\n\n    try {\n      if (editingCredential) {\n        const payload: UpdateCredentialPayload = {\n          name: values.name,\n          isDefault: values.isDefault,\n          enabled: values.enabled,\n        };\n        if (values.apiKey || values.baseUrl !== editingCredential.maskedConfig.baseUrl) {\n          payload.config = config;\n        }\n        await updateCredential(selectedProvider.id, editingCredential.id, payload);\n        message.success('凭据已更新');\n      } else {\n        const payload: CredentialPayload = {\n          name: values.name,\n          config,\n          isDefault: values.isDefault,\n          enabled: values.enabled,\n        };\n        await createCredential(selectedProvider.id, payload);\n        message.success('凭据已创建');\n      }\n      setCredentialModalOpen(false);\n      await refreshCurrent();\n    } catch {\n      message.error(editingCredential ? '更新凭据失败' : '创建凭据失败');\n    }\n  };\n\n  const handleValidateCredential = async (credential: ProviderCredential) => {\n    if (!selectedProvider) return;\n    try {\n      const result = await validateCredential(selectedProvider.id, credential.id);\n      if (result.ok) {\n        message.success('凭据连通性校验通过');\n      } else {\n        message.warning(result.error || '凭据连通性校验失败');\n      }\n      await refreshCurrent();\n    } catch {\n      message.error('凭据连通性校验失败');\n    }\n  };\n\n  const handleSetDefaultCredential = async (credential: ProviderCredential) => {\n    if (!selectedProvider) return;\n    try {\n      await setDefaultCredential(selectedProvider.id, credential.id);\n      message.success('已设为默认凭据');\n      await refreshCurrent();\n    } catch {\n      message.error('设置默认凭据失败');\n    }\n  };\n\n  const handleDeleteCredential = async (credential: ProviderCredential) => {\n    if (!selectedProvider) return;\n    try {\n      await deleteCredential(selectedProvider.id, credential.id);\n      message.success('凭据已禁用');\n      await refreshCurrent();\n    } catch {\n      message.error('禁用凭据失败');\n    }\n  };\n\n  const openCreateModel = () => {\n    setEditingModel(undefined);\n    modelForm.resetFields();\n    modelForm.setFieldsValue({\n      modelType: activeModelType,\n      enabled: true,\n      deprecated: false,\n      isDefault: currentModels.length === 0,\n      features: activeModelType === 'llm' ? 'chat,stream' : '',\n    });\n    setModelModalOpen(true);\n  };\n\n  const openEditModel = (model: ProviderModel) => {\n    setEditingModel(model);\n    modelForm.setFieldsValue({\n      modelType: model.modelType,\n      name: model.name,\n      displayName: model.displayName,\n      features: Array.isArray(model.features) ? model.features.join(',') : '',\n      contextSize: model.contextSize,\n      maxOutput: model.maxOutput,\n      defaultParameters: formatJsonField(model.defaultParameters),\n      pricing: formatJsonField(model.pricing),\n      deprecated: model.deprecated,\n      isDefault: model.isDefault,\n      enabled: model.enabled,\n    });\n    setModelModalOpen(true);\n  };\n\n  const handleModelSubmit = async () => {\n    if (!selectedProvider) return;\n    const values = await modelForm.validateFields();\n\n    try {\n      const payload = {\n        modelType: values.modelType,\n        displayName: values.displayName,\n        features: parseFeatures(values.features),\n        contextSize: values.contextSize,\n        maxOutput: values.maxOutput,\n        defaultParameters: parseJsonField(values.defaultParameters),\n        pricing: parseJsonField(values.pricing),\n        deprecated: values.deprecated,\n        isDefault: values.isDefault,\n        enabled: values.enabled,\n      };\n\n      if (editingModel) {\n        await updateModel(selectedProvider.id, editingModel.id, payload as UpdateModelPayload);\n        message.success('模型已更新');\n      } else {\n        await createModel(selectedProvider.id, {\n          ...payload,\n          name: values.name,\n        } as ModelPayload);\n        message.success('模型已创建');\n      }\n      setModelModalOpen(false);\n      await refreshCurrent();\n    } catch (error) {\n      if (error instanceof SyntaxError) {\n        message.error('JSON 字段格式不正确');\n        return;\n      }\n      message.error(editingModel ? '更新模型失败' : '创建模型失败');\n    }\n  };\n\n  const handleSetDefaultModel = async (model: ProviderModel) => {\n    if (!selectedProvider) return;\n    try {\n      await setDefaultModel(selectedProvider.id, model.id);\n      message.success('已设为默认模型');\n      await refreshCurrent();\n    } catch {\n      message.error('设置默认模型失败');\n    }\n  };\n\n  const handleDeleteModel = async (model: ProviderModel) => {\n    if (!selectedProvider) return;\n    try {\n      await deleteModel(selectedProvider.id, model.id);\n      message.success('模型已禁用');\n      await refreshCurrent();\n    } catch {\n      message.error('禁用模型失败');\n    }\n  };\n\n  const credentialColumns: ColumnsType<ProviderCredential> = [\n    {\n      title: '凭据名称',\n      dataIndex: 'name',\n      key: 'name',\n      render: (name, record) => (\n        <Space>\n          <Text strong>{name}</Text>\n          {record.isDefault && <Tag color=\"gold\">默认</Tag>}\n        </Space>\n      ),\n    },\n    {\n      title: '配置',\n      key: 'config',\n      ellipsis: true,\n      render: (_, record) => (\n        <Text type=\"secondary\">\n          API Key {record.maskedConfig.apiKey ? '已配置' : '未配置'}\n          {record.maskedConfig.baseUrl ? ` · ${record.maskedConfig.baseUrl}` : ''}\n        </Text>\n      ),\n    },\n    {\n      title: '校验',\n      key: 'validation',\n      width: 150,\n      render: (_, record) =>\n        record.lastValidationError ? (\n          <Tooltip title={record.lastValidationError}>\n            <Tag color=\"error\">失败</Tag>\n          </Tooltip>\n        ) : record.lastValidatedAt ? (\n          <Tag color=\"success\">通过</Tag>\n        ) : (\n          <Tag>未校验</Tag>\n        ),\n    },\n    {\n      title: '状态',\n      dataIndex: 'enabled',\n      key: 'enabled',\n      width: 90,\n      render: (enabled) => (enabled ? <Tag color=\"success\">启用</Tag> : <Tag>禁用</Tag>),\n    },\n    {\n      title: '操作',\n      key: 'actions',\n      width: 260,\n      render: (_, record) => (\n        <Space size=\"small\">\n          <Button type=\"link\" size=\"small\" icon={<ExperimentOutlined />} onClick={() => handleValidateCredential(record)}>\n            测试\n          </Button>\n          {!record.isDefault && record.enabled && (\n            <Button type=\"link\" size=\"small\" icon={<StarOutlined />} onClick={() => handleSetDefaultCredential(record)}>\n              默认\n            </Button>\n          )}\n          <Button type=\"link\" size=\"small\" icon={<EditOutlined />} onClick={() => openEditCredential(record)} />\n          <Popconfirm title=\"确定禁用该凭据？\" onConfirm={() => handleDeleteCredential(record)}>\n            <Button type=\"link\" size=\"small\" danger icon={<DeleteOutlined />} disabled={!record.enabled} />\n          </Popconfirm>\n        </Space>\n      ),\n    },\n  ];\n\n  const modelColumns: ColumnsType<ProviderModel> = [\n    {\n      title: '模型',\n      dataIndex: 'name',\n      key: 'name',\n      render: (name, record) => (\n        <Space direction=\"vertical\" size={0}>\n          <Space>\n            <Text strong>{record.displayName}</Text>\n            {record.isDefault && <Tag color=\"gold\">默认</Tag>}\n            {record.deprecated && <Tag color=\"warning\">Deprecated</Tag>}\n          </Space>\n          <Text type=\"secondary\">{name}</Text>\n        </Space>\n      ),\n    },\n    {\n      title: '能力',\n      key: 'features',\n      width: 180,\n      render: (_, record) =>\n        Array.isArray(record.features) && record.features.length > 0 ? (\n          <Space size={[4, 4]} wrap>\n            {record.features.map((feature) => (\n              <Tag key={feature}>{feature}</Tag>\n            ))}\n          </Space>\n        ) : (\n          <Text type=\"secondary\">-</Text>\n        ),\n    },\n    {\n      title: '上下文 / 输出',\n      key: 'limits',\n      width: 150,\n      render: (_, record) => (\n        <Text type=\"secondary\">\n          {record.contextSize ?? '-'} / {record.maxOutput ?? '-'}\n        </Text>\n      ),\n    },\n    {\n      title: '状态',\n      dataIndex: 'enabled',\n      key: 'enabled',\n      width: 90,\n      render: (enabled) => (enabled ? <Tag color=\"success\">启用</Tag> : <Tag>禁用</Tag>),\n    },\n    {\n      title: '操作',\n      key: 'actions',\n      width: 210,\n      render: (_, record) => (\n        <Space size=\"small\">\n          {!record.isDefault && record.enabled && (\n            <Button type=\"link\" size=\"small\" icon={<StarOutlined />} onClick={() => handleSetDefaultModel(record)}>\n              默认\n            </Button>\n          )}\n          <Button type=\"link\" size=\"small\" icon={<EditOutlined />} onClick={() => openEditModel(record)} />\n          <Popconfirm title=\"确定禁用该模型？\" onConfirm={() => handleDeleteModel(record)}>\n            <Button type=\"link\" size=\"small\" danger icon={<DeleteOutlined />} disabled={!record.enabled} />\n          </Popconfirm>\n        </Space>\n      ),\n    },\n  ];\n\n  return (\n    <div style={{ maxWidth: 1280, margin: '0 auto' }}>\n      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>\n        <Title level={4} style={{ margin: 0 }}>\n          模型管理\n        </Title>\n        <Button type=\"primary\" icon={<PlusOutlined />} onClick={openCreateProvider}>\n          新增供应商\n        </Button>\n      </div>\n\n      <div style={{ display: 'grid', gridTemplateColumns: '320px minmax(0, 1fr)', gap: 16 }}>\n        <div style={{ border: '1px solid #f0f0f0', borderRadius: 8, background: '#fff' }}>\n          <div style={{ padding: '14px 16px', borderBottom: '1px solid #f0f0f0' }}>\n            <Text strong>供应商</Text>\n          </div>\n          <div style={{ maxHeight: 'calc(100vh - 210px)', overflow: 'auto' }}>\n            {providers.map((provider) => {\n              const selected = provider.id === selectedProviderId;\n              return (\n                <button\n                  key={provider.id}\n                  type=\"button\"\n                  onClick={() => setSelectedProviderId(provider.id)}\n                  style={{\n                    width: '100%',\n                    border: 0,\n                    borderBottom: '1px solid #f5f5f5',\n                    background: selected ? '#e6f4ff' : '#fff',\n                    padding: 14,\n                    cursor: 'pointer',\n                    textAlign: 'left',\n                  }}\n                >\n                  <Space direction=\"vertical\" size={6} style={{ width: '100%' }}>\n                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>\n                      <Space>\n                        <CloudServerOutlined />\n                        <Text strong={selected}>{provider.displayName}</Text>\n                      </Space>\n                      <Badge status={provider.configured ? 'success' : 'default'} />\n                    </Space>\n                    <Text type=\"secondary\" ellipsis>\n                      {provider.name} · {provider.adapterType}\n                    </Text>\n                    <Space size={4} wrap>\n                      <Tag color={provider.enabled ? 'success' : 'default'}>\n                        {provider.enabled ? '启用' : '禁用'}\n                      </Tag>\n                      <Tag>{provider.modelStats.llm ?? 0} LLM</Tag>\n                      {provider.systemBuiltIn && <Tag color=\"blue\">预置</Tag>}\n                    </Space>\n                  </Space>\n                </button>\n              );\n            })}\n            {!loading && providers.length === 0 && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />}\n          </div>\n        </div>\n\n        <div style={{ minWidth: 0, border: '1px solid #f0f0f0', borderRadius: 8, background: '#fff' }}>\n          {selectedProvider ? (\n            <>\n              <div style={{ padding: 16, borderBottom: '1px solid #f0f0f0' }}>\n                <Space style={{ width: '100%', justifyContent: 'space-between', alignItems: 'start' }}>\n                  <Space direction=\"vertical\" size={4}>\n                    <Space>\n                      <Title level={5} style={{ margin: 0 }}>\n                        {selectedProvider.displayName}\n                      </Title>\n                      <Tag color={selectedProvider.configured ? 'success' : 'default'}>\n                        {selectedProvider.configured ? '已配置' : '未配置'}\n                      </Tag>\n                      <Tag>{selectedProvider.adapterType}</Tag>\n                    </Space>\n                    <Text type=\"secondary\">\n                      {selectedProvider.name} · {selectedProvider.baseUrl || '未设置 Base URL'}\n                    </Text>\n                  </Space>\n                  <Space>\n                    <Button icon={<EditOutlined />} onClick={() => openEditProvider(selectedProvider)}>\n                      编辑\n                    </Button>\n                    <Popconfirm title=\"确定禁用该供应商？\" onConfirm={() => handleDeleteProvider(selectedProvider)}>\n                      <Button danger icon={<DeleteOutlined />} disabled={!selectedProvider.enabled}>\n                        禁用\n                      </Button>\n                    </Popconfirm>\n                  </Space>\n                </Space>\n              </div>\n\n              {selectedProvider.adapterType !== 'openai-compatible' && (\n                <Alert\n                  type=\"warning\"\n                  showIcon\n                  style={{ margin: 16, marginBottom: 0 }}\n                  message=\"该供应商为原生适配器预留项，当前聊天代理暂不转发其原生协议。\"\n                />\n              )}\n\n              <Tabs\n                activeKey={activeTab}\n                onChange={(key) => {\n                  setActiveTab(key);\n                  if (key !== 'credentials') {\n                    setActiveModelType(key as ModelType);\n                  }\n                }}\n                style={{ padding: '0 16px 16px' }}\n                tabBarExtraContent={\n                  <Space>\n                    <Button icon={<ApiOutlined />} onClick={openCreateCredential}>\n                      新增凭据\n                    </Button>\n                    <Button type=\"primary\" icon={<PlusOutlined />} onClick={openCreateModel}>\n                      新增模型\n                    </Button>\n                  </Space>\n                }\n                items={[\n                  {\n                    key: 'credentials',\n                    label: '凭据',\n                    children: (\n                      <Table\n                        rowKey=\"id\"\n                        loading={detailLoading}\n                        columns={credentialColumns}\n                        dataSource={selectedProvider.credentials}\n                        pagination={false}\n                        size=\"middle\"\n                      />\n                    ),\n                  },\n                  ...modelTypeTabs.map((tab) => ({\n                    key: tab.key,\n                    label: `${tab.label} (${selectedProvider.modelStats?.[tab.key] ?? 0})`,\n                    children: (\n                      <Table\n                        rowKey=\"id\"\n                        loading={detailLoading}\n                        columns={modelColumns}\n                        dataSource={providerDetail?.modelsByType?.[tab.key] ?? []}\n                        pagination={false}\n                        size=\"middle\"\n                        locale={{ emptyText: '暂无模型' }}\n                      />\n                    ),\n                  })),\n                ]}\n              />\n            </>\n          ) : (\n            <Empty style={{ padding: 80 }} description=\"请选择或新增模型供应商\" />\n          )}\n        </div>\n      </div>\n\n      <Modal\n        title={editingProvider ? '编辑供应商' : '新增供应商'}\n        open={providerModalOpen}\n        onOk={handleProviderSubmit}\n        onCancel={() => setProviderModalOpen(false)}\n        destroyOnHidden\n      >\n        <Form form={providerForm} layout=\"vertical\" style={{ marginTop: 16 }}>\n          <Form.Item name=\"name\" label=\"供应商标识\" rules={[{ required: true, message: '请输入供应商标识' }]}>\n            <Input placeholder=\"如 openai、deepseek\" disabled={!!editingProvider} />\n          </Form.Item>\n          <Form.Item name=\"displayName\" label=\"显示名称\" rules={[{ required: true, message: '请输入显示名称' }]}>\n            <Input placeholder=\"如 OpenAI\" />\n          </Form.Item>\n          <Form.Item name=\"baseUrl\" label=\"Base URL\">\n            <Input placeholder=\"https://api.openai.com/v1\" />\n          </Form.Item>\n          <Form.Item name=\"adapterType\" label=\"适配器\" rules={[{ required: true, message: '请选择适配器' }]}>\n            <Select options={adapterOptions} />\n          </Form.Item>\n          <Form.Item name=\"providerType\" label=\"供应商类型\">\n            <Select\n              options={[\n                { label: '系统预置', value: 'system' },\n                { label: '自定义', value: 'custom' },\n              ]}\n            />\n          </Form.Item>\n          <Form.Item name=\"enabled\" label=\"启用\" valuePropName=\"checked\">\n            <Switch />\n          </Form.Item>\n        </Form>\n      </Modal>\n\n      <Modal\n        title={editingCredential ? '编辑凭据' : '新增凭据'}\n        open={credentialModalOpen}\n        onOk={handleCredentialSubmit}\n        onCancel={() => setCredentialModalOpen(false)}\n        destroyOnHidden\n      >\n        <Form form={credentialForm} layout=\"vertical\" style={{ marginTop: 16 }}>\n          <Form.Item name=\"name\" label=\"凭据名称\" rules={[{ required: true, message: '请输入凭据名称' }]}>\n            <Input placeholder=\"如 默认凭据、备用 Key\" />\n          </Form.Item>\n          <Form.Item\n            name=\"apiKey\"\n            label=\"API Key\"\n            rules={[{ required: !editingCredential, message: '请输入 API Key' }]}\n            extra={editingCredential ? '留空表示不修改当前密钥。' : undefined}\n          >\n            <Input.Password placeholder={editingCredential ? '保持当前密钥' : 'sk-...'} />\n          </Form.Item>\n          <Form.Item name=\"baseUrl\" label=\"覆盖 Base URL\">\n            <Input placeholder={selectedProvider?.baseUrl || '可选'} />\n          </Form.Item>\n          <Form.Item name=\"isDefault\" label=\"设为默认\" valuePropName=\"checked\">\n            <Switch />\n          </Form.Item>\n          <Form.Item name=\"enabled\" label=\"启用\" valuePropName=\"checked\">\n            <Switch />\n          </Form.Item>\n        </Form>\n      </Modal>\n\n      <Modal\n        title={editingModel ? '编辑模型' : '新增模型'}\n        open={modelModalOpen}\n        onOk={handleModelSubmit}\n        onCancel={() => setModelModalOpen(false)}\n        destroyOnHidden\n        width={640}\n      >\n        <Form form={modelForm} layout=\"vertical\" style={{ marginTop: 16 }}>\n          <Form.Item name=\"modelType\" label=\"模型类型\" rules={[{ required: true, message: '请选择模型类型' }]}>\n            <Select options={modelTypeTabs.map((item) => ({ label: item.label, value: item.key }))} />\n          </Form.Item>\n          <Form.Item name=\"name\" label=\"模型标识\" rules={[{ required: true, message: '请输入模型标识' }]}>\n            <Input placeholder=\"如 gpt-4o-mini\" disabled={!!editingModel} />\n          </Form.Item>\n          <Form.Item name=\"displayName\" label=\"显示名称\" rules={[{ required: true, message: '请输入显示名称' }]}>\n            <Input placeholder=\"如 GPT-4o Mini\" />\n          </Form.Item>\n          <Form.Item name=\"features\" label=\"能力标签\">\n            <Input placeholder=\"chat,stream,vision\" />\n          </Form.Item>\n          <Space style={{ width: '100%' }} size={12}>\n            <Form.Item name=\"contextSize\" label=\"上下文窗口\" style={{ flex: 1 }}>\n              <InputNumber min={1} style={{ width: '100%' }} />\n            </Form.Item>\n            <Form.Item name=\"maxOutput\" label=\"最大输出\" style={{ flex: 1 }}>\n              <InputNumber min={1} style={{ width: '100%' }} />\n            </Form.Item>\n          </Space>\n          <Form.Item name=\"defaultParameters\" label=\"默认参数 JSON\">\n            <TextArea rows={3} placeholder={'{\"temperature\":0.7}'} />\n          </Form.Item>\n          <Form.Item name=\"pricing\" label=\"价格 JSON\">\n            <TextArea rows={3} placeholder={'{\"input\":0,\"output\":0,\"unit\":\"1M tokens\"}'} />\n          </Form.Item>\n          <Space size={24}>\n            <Form.Item name=\"isDefault\" label=\"设为默认\" valuePropName=\"checked\">\n              <Switch />\n            </Form.Item>\n            <Form.Item name=\"deprecated\" label=\"Deprecated\" valuePropName=\"checked\">\n              <Switch />\n            </Form.Item>\n            <Form.Item name=\"enabled\" label=\"启用\" valuePropName=\"checked\">\n              <Switch />\n            </Form.Item>\n          </Space>\n        </Form>\n      </Modal>\n    </div>\n  );\n}\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/base/models/index.tsx"
     },
-    "16": {
+    "17": {
       "path": "/ai/files",
       "title": "文件管理",
       "file": "@/pages/base/files/index.tsx",
-      "parentId": "12",
-      "id": "16",
+      "parentId": "13",
+      "id": "17",
       "absPath": "/ai/files",
-      "__content": "import { DownloadOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons';\nimport { Button, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd';\nimport type { ColumnsType } from 'antd/es/table';\nimport { type FC, useEffect } from 'react';\nimport { deleteManagedFile, loadFiles } from '@/store/fileThunks';\nimport { useAppDispatch, useAppSelector } from '@/store';\nimport { selectManagedFiles } from '@/store/selectors';\nimport type { ChatFile } from '@/store/types';\nimport { getFileDownloadUrl } from '@/service/file';\n\nfunction formatFileSize(size: number) {\n  if (size >= 1024 * 1024) {\n    return `${(size / 1024 / 1024).toFixed(1)} MB`;\n  }\n  if (size >= 1024) {\n    return `${(size / 1024).toFixed(1)} KB`;\n  }\n  return `${size} B`;\n}\n\nfunction renderStatus(status: string) {\n  const color = status === 'ready' ? 'success' : status === 'failed' ? 'error' : 'processing';\n  const labelMap: Record<string, string> = {\n    ready: '已就绪',\n    uploaded: '已上传',\n    parsing: '解析中',\n    failed: '解析失败',\n  };\n  return <Tag color={color}>{labelMap[status] ?? status}</Tag>;\n}\n\nconst FilesPage: FC = () => {\n  const dispatch = useAppDispatch();\n  const files = useAppSelector(selectManagedFiles);\n  const loading = useAppSelector((state) => state.files.globalLoading);\n  const hasMore = useAppSelector((state) => state.files.globalHasMore);\n  const statusFilter = useAppSelector((state) => state.files.statusFilter);\n\n  useEffect(() => {\n    dispatch(loadFiles());\n  }, [dispatch]);\n\n  const columns: ColumnsType<ChatFile> = [\n    {\n      title: '文件名',\n      dataIndex: 'name',\n      key: 'name',\n      ellipsis: true,\n      render: (name: string, record) => (\n        <Space direction=\"vertical\" size={0}>\n          <Typography.Text ellipsis style={{ maxWidth: 320 }}>\n            {name}\n          </Typography.Text>\n          <Typography.Text type=\"secondary\" style={{ fontSize: 12 }}>\n            {record.type}\n          </Typography.Text>\n        </Space>\n      ),\n    },\n    {\n      title: '状态',\n      dataIndex: 'status',\n      key: 'status',\n      width: 110,\n      render: renderStatus,\n    },\n    {\n      title: '大小',\n      dataIndex: 'size',\n      key: 'size',\n      width: 100,\n      render: (size: number) => formatFileSize(size),\n    },\n    {\n      title: '用途',\n      dataIndex: 'purpose',\n      key: 'purpose',\n      width: 100,\n    },\n    {\n      title: '会话',\n      dataIndex: 'sessionCount',\n      key: 'sessionCount',\n      width: 90,\n      render: (value: number) => `${value} 个`,\n    },\n    {\n      title: '消息引用',\n      dataIndex: 'messageCount',\n      key: 'messageCount',\n      width: 110,\n      render: (value: number) => `${value} 次`,\n    },\n    {\n      title: '上传时间',\n      dataIndex: 'createdAt',\n      key: 'createdAt',\n      width: 190,\n      render: (value: string) => new Date(value).toLocaleString(),\n    },\n    {\n      title: '操作',\n      key: 'action',\n      width: 140,\n      render: (_, record) => (\n        <Space size={4}>\n          <Button\n            aria-label=\"下载文件\"\n            icon={<DownloadOutlined />}\n            size=\"small\"\n            type=\"text\"\n            onClick={() => window.open(getFileDownloadUrl(record.id), '_blank')}\n          />\n          <Popconfirm\n            title=\"确定删除该文件？\"\n            onConfirm={() => dispatch(deleteManagedFile(record.id))}\n          >\n            <Button\n              aria-label=\"删除文件\"\n              danger\n              icon={<DeleteOutlined />}\n              size=\"small\"\n              type=\"text\"\n            />\n          </Popconfirm>\n        </Space>\n      ),\n    },\n  ];\n\n  return (\n    <div style={{ height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)' }}>\n      <Space style={{ justifyContent: 'space-between', marginBottom: 16 }}>\n        <Typography.Title level={4} style={{ margin: 0 }}>\n          文件管理\n        </Typography.Title>\n        <Space>\n          <Select\n            allowClear\n            placeholder=\"文件状态\"\n            style={{ width: 140 }}\n            value={statusFilter}\n            options={[\n              { value: 'ready', label: '已就绪' },\n              { value: 'uploaded', label: '已上传' },\n              { value: 'failed', label: '解析失败' },\n            ]}\n            onChange={(status) => dispatch(loadFiles({ status }))}\n          />\n          <Button\n            icon={<ReloadOutlined />}\n            loading={loading}\n            onClick={() => dispatch(loadFiles({ status: statusFilter }))}\n          >\n            刷新\n          </Button>\n        </Space>\n      </Space>\n\n      <div style={{ minHeight: 0, overflow: 'auto', background: '#fff', border: '1px solid #f0f0f0' }}>\n        <Table\n          rowKey=\"id\"\n          columns={columns}\n          dataSource={files}\n          loading={loading}\n          pagination={false}\n          scroll={{ x: 980 }}\n        />\n        {hasMore && (\n          <div style={{ padding: 12, textAlign: 'center' }}>\n            <Button loading={loading} onClick={() => dispatch(loadFiles({ status: statusFilter, append: true }))}>\n              加载更多\n            </Button>\n          </div>\n        )}\n      </div>\n    </div>\n  );\n};\n\nexport default FilesPage;\n",
+      "__content": "import { DownloadOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons';\nimport { Button, Popconfirm, Select, Space, Table, Tag, Typography } from 'antd';\nimport type { ColumnsType } from 'antd/es/table';\nimport { type FC, useEffect } from 'react';\nimport { deleteManagedFile, loadFiles } from '@/store/fileThunks';\nimport { useAppDispatch, useAppSelector } from '@/store';\nimport { selectManagedFiles } from '@/store/selectors';\nimport type { ChatFile } from '@/store/types';\nimport { downloadFile } from '@/service/file';\n\nfunction formatFileSize(size: number) {\n  if (size >= 1024 * 1024) {\n    return `${(size / 1024 / 1024).toFixed(1)} MB`;\n  }\n  if (size >= 1024) {\n    return `${(size / 1024).toFixed(1)} KB`;\n  }\n  return `${size} B`;\n}\n\nfunction renderStatus(status: string) {\n  const color = status === 'ready' ? 'success' : status === 'failed' ? 'error' : 'processing';\n  const labelMap: Record<string, string> = {\n    ready: '已就绪',\n    uploaded: '已上传',\n    parsing: '解析中',\n    failed: '解析失败',\n  };\n  return <Tag color={color}>{labelMap[status] ?? status}</Tag>;\n}\n\nconst FilesPage: FC = () => {\n  const dispatch = useAppDispatch();\n  const files = useAppSelector(selectManagedFiles);\n  const loading = useAppSelector((state) => state.files.globalLoading);\n  const hasMore = useAppSelector((state) => state.files.globalHasMore);\n  const statusFilter = useAppSelector((state) => state.files.statusFilter);\n\n  useEffect(() => {\n    dispatch(loadFiles());\n  }, [dispatch]);\n\n  const columns: ColumnsType<ChatFile> = [\n    {\n      title: '文件名',\n      dataIndex: 'name',\n      key: 'name',\n      ellipsis: true,\n      render: (name: string, record) => (\n        <Space direction=\"vertical\" size={0}>\n          <Typography.Text ellipsis style={{ maxWidth: 320 }}>\n            {name}\n          </Typography.Text>\n          <Typography.Text type=\"secondary\" style={{ fontSize: 12 }}>\n            {record.type}\n          </Typography.Text>\n        </Space>\n      ),\n    },\n    {\n      title: '状态',\n      dataIndex: 'status',\n      key: 'status',\n      width: 110,\n      render: renderStatus,\n    },\n    {\n      title: '大小',\n      dataIndex: 'size',\n      key: 'size',\n      width: 100,\n      render: (size: number) => formatFileSize(size),\n    },\n    {\n      title: '用途',\n      dataIndex: 'purpose',\n      key: 'purpose',\n      width: 100,\n    },\n    {\n      title: '会话',\n      dataIndex: 'sessionCount',\n      key: 'sessionCount',\n      width: 90,\n      render: (value: number) => `${value} 个`,\n    },\n    {\n      title: '消息引用',\n      dataIndex: 'messageCount',\n      key: 'messageCount',\n      width: 110,\n      render: (value: number) => `${value} 次`,\n    },\n    {\n      title: '上传时间',\n      dataIndex: 'createdAt',\n      key: 'createdAt',\n      width: 190,\n      render: (value: string) => new Date(value).toLocaleString(),\n    },\n    {\n      title: '操作',\n      key: 'action',\n      width: 140,\n      render: (_, record) => (\n        <Space size={4}>\n          <Button\n            aria-label=\"下载文件\"\n            icon={<DownloadOutlined />}\n            size=\"small\"\n            type=\"text\"\n            onClick={() => void downloadFile(record.id)}\n          />\n          <Popconfirm\n            title=\"确定删除该文件？\"\n            onConfirm={() => dispatch(deleteManagedFile(record.id))}\n          >\n            <Button\n              aria-label=\"删除文件\"\n              danger\n              icon={<DeleteOutlined />}\n              size=\"small\"\n              type=\"text\"\n            />\n          </Popconfirm>\n        </Space>\n      ),\n    },\n  ];\n\n  return (\n    <div style={{ height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)' }}>\n      <Space style={{ justifyContent: 'space-between', marginBottom: 16 }}>\n        <Typography.Title level={4} style={{ margin: 0 }}>\n          文件管理\n        </Typography.Title>\n        <Space>\n          <Select\n            allowClear\n            placeholder=\"文件状态\"\n            style={{ width: 140 }}\n            value={statusFilter}\n            options={[\n              { value: 'ready', label: '已就绪' },\n              { value: 'uploaded', label: '已上传' },\n              { value: 'failed', label: '解析失败' },\n            ]}\n            onChange={(status) => dispatch(loadFiles({ status }))}\n          />\n          <Button\n            icon={<ReloadOutlined />}\n            loading={loading}\n            onClick={() => dispatch(loadFiles({ status: statusFilter }))}\n          >\n            刷新\n          </Button>\n        </Space>\n      </Space>\n\n      <div style={{ minHeight: 0, overflow: 'auto', background: '#fff', border: '1px solid #f0f0f0' }}>\n        <Table\n          rowKey=\"id\"\n          columns={columns}\n          dataSource={files}\n          loading={loading}\n          pagination={false}\n          scroll={{ x: 980 }}\n        />\n        {hasMore && (\n          <div style={{ padding: 12, textAlign: 'center' }}>\n            <Button loading={loading} onClick={() => dispatch(loadFiles({ status: statusFilter, append: true }))}>\n              加载更多\n            </Button>\n          </div>\n        )}\n      </div>\n    </div>\n  );\n};\n\nexport default FilesPage;\n",
       "__isJSFile": true,
       "__absFile": "/Users/wuxuegang/Study/React/aiagent/antdXStudy/src/pages/base/files/index.tsx"
     },

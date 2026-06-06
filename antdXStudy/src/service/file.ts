@@ -1,7 +1,7 @@
 import { request } from '@umijs/max';
 import { parseApiEnvelopeResponse } from './request';
 import type { BackendFileListResponse } from '@/store/adapters/fileAdapter';
-import { getApiBaseUrl, getUserId } from './config';
+import { buildAuthHeaders, getApiBaseUrl } from './config';
 
 const filesUrl = () => `${getApiBaseUrl()}/files`;
 const sessionsUrl = () => `${getApiBaseUrl()}/sessions`;
@@ -52,6 +52,27 @@ export function getFileDownloadUrl(id: string) {
   return `${filesUrl()}/${id}/download`;
 }
 
+export async function downloadFile(id: string) {
+  const response = await fetch(getFileDownloadUrl(id), {
+    headers: buildAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    await parseApiEnvelopeResponse(response, '下载失败');
+  }
+
+  const blob = await response.blob();
+  const disposition = response.headers.get('content-disposition') || '';
+  const matched = disposition.match(/filename="([^"]+)"/);
+  const fileName = matched ? decodeURIComponent(matched[1]) : 'download';
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 /**
  * 主聊天页文件上传入口。
  * 文件上传与 v2 流式聊天请求解耦，发送消息时只传递文件 ID。
@@ -73,7 +94,7 @@ export async function uploadFile(file: File): Promise<{
   const response = await fetch(`${filesUrl()}/upload`, {
     method: 'POST',
     headers: {
-      'X-User-Id': getUserId(),
+      ...buildAuthHeaders(),
       'X-File-Name': encodeURIComponent(file.name),
     },
     body: formData,
