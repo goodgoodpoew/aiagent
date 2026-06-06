@@ -72,3 +72,25 @@ test('聊天页桌面和移动端布局截图基线', async ({ page }, testInfo)
     animations: 'disabled',
   });
 });
+
+// 布局矩阵：在桌面项目下补齐平板 768 与宽屏 1920 基线，覆盖方案 §11.2 的布局容忍度清单。
+const layoutMatrix = [
+  { name: 'tablet-768', width: 768, height: 1024 },
+  { name: 'wide-1920', width: 1920, height: 1080 },
+];
+
+for (const viewport of layoutMatrix) {
+  test(`聊天页 ${viewport.name} 布局截图基线`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', '布局矩阵只在桌面 Chromium 项目下采集');
+
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto('/ai/chat');
+    await expect(page.getByText('视觉回归会话').first()).toBeVisible();
+    await expect(page.getByText('这是一段用于截图基线的回答。')).toBeVisible();
+
+    await expect(page).toHaveScreenshot(`chat-${viewport.name}.png`, {
+      fullPage: true,
+      animations: 'disabled',
+    });
+  });
+}

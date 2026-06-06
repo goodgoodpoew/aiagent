@@ -1,15 +1,21 @@
 import { request } from '@umijs/max';
-import type { BackendSessionDto, BackendSessionListResponse } from '@/store/adapters/sessionAdapter';
+import type {
+  BackendSessionDto,
+  BackendSessionListResponse,
+} from '@/store/adapters/sessionAdapter';
+import { getApiBaseUrl } from './config';
 
-const BASE_URL = 'http://localhost:3001/api';
+const sessionsUrl = () => `${getApiBaseUrl()}/sessions`;
 
 export interface FetchSessionsParams {
   cursor?: string | null;
   limit?: number;
 }
 
-export function fetchSessions(params?: FetchSessionsParams): Promise<BackendSessionListResponse> {
-  return request(`${BASE_URL}/sessions`, {
+export function fetchSessions(
+  params?: FetchSessionsParams,
+): Promise<BackendSessionListResponse> {
+  return request(sessionsUrl(), {
     method: 'GET',
     params: {
       limit: params?.limit ?? 20,
@@ -18,29 +24,38 @@ export function fetchSessions(params?: FetchSessionsParams): Promise<BackendSess
   });
 }
 
-export function createSession(data: { title?: string; fileIds?: string[] }): Promise<BackendSessionDto> {
-  return request(`${BASE_URL}/sessions`, {
+export function createSession(data: {
+  title?: string;
+  fileIds?: string[];
+}): Promise<BackendSessionDto> {
+  return request(sessionsUrl(), {
     method: 'POST',
     data,
   });
 }
 
-export function attachFilesToSession(id: string, fileIds: string[]): Promise<{ attachedFileIds: string[] }> {
-  return request(`${BASE_URL}/sessions/${id}/files`, {
+export function attachFilesToSession(
+  id: string,
+  fileIds: string[],
+): Promise<{ attachedFileIds: string[] }> {
+  return request(`${sessionsUrl()}/${id}/files`, {
     method: 'POST',
     data: { fileIds },
   });
 }
 
-export function updateSession(id: string, data: { title?: string }): Promise<BackendSessionDto> {
-  return request(`${BASE_URL}/sessions/${id}`, {
+export function updateSession(
+  id: string,
+  data: { title?: string },
+): Promise<BackendSessionDto> {
+  return request(`${sessionsUrl()}/${id}`, {
     method: 'PATCH',
     data,
   });
 }
 
 export function deleteSession(id: string): Promise<BackendSessionDto> {
-  return request(`${BASE_URL}/sessions/${id}`, {
+  return request(`${sessionsUrl()}/${id}`, {
     method: 'DELETE',
   });
 }

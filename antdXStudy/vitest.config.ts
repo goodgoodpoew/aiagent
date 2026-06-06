@@ -21,8 +21,8 @@ export default defineConfig({
       include: ['src/service/**/*.{ts,tsx}', 'src/store/**/*.{ts,tsx}'],
       exclude: ['src/**/*.spec.{ts,tsx}', 'src/**/*.component.spec.tsx'],
       thresholds: {
-        statements: 40,
-        branches: 30,
+        statements: 80,
+        branches: 60,
       },
     },
   },

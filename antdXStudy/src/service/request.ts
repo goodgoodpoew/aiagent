@@ -1,5 +1,6 @@
 import type { RuntimeConfig } from '@umijs/max';
 import { message as antdMessage } from 'antd';
+import { getUserId } from './config';
 
 export interface ApiEnvelope<T = unknown> {
   success: boolean;
@@ -50,7 +51,10 @@ function isApiEnvelope<T = unknown>(value: unknown): value is ApiEnvelope<T> {
   );
 }
 
-function toApiClientError(envelope: ApiEnvelope, status?: number): ApiClientError {
+function toApiClientError(
+  envelope: ApiEnvelope,
+  status?: number,
+): ApiClientError {
   return new ApiClientError({
     code: envelope.code || `HTTP_${status ?? 'UNKNOWN'}`,
     message: envelope.message || '请求失败，请稍后重试',
@@ -98,7 +102,7 @@ export async function parseApiEnvelopeResponse<T>(
 export const request: RuntimeConfig['request'] = {
   timeout: 1000,
   headers: {
-    'X-User-Id': '9a74c501-9d60-441b-b1ba-7b3eb469dce0',
+    'X-User-Id': getUserId(),
   },
   errorConfig: {
     errorThrower(data) {
@@ -111,9 +115,11 @@ export const request: RuntimeConfig['request'] = {
         throw error;
       }
 
-      const responseData = (error as { response?: { data?: unknown; status?: number } }).response
-        ?.data;
-      const status = (error as { response?: { status?: number } }).response?.status;
+      const responseData = (
+        error as { response?: { data?: unknown; status?: number } }
+      ).response?.data;
+      const status = (error as { response?: { status?: number } }).response
+        ?.status;
 
       if (isApiEnvelope(responseData)) {
         const apiError = toApiClientError(responseData, status);

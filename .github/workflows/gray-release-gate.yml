@@ -1,0 +1,198 @@
+name: Gray Release Gate
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 18 * * *"
+
+jobs:
+  gray-release-gate:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres-test:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: aichat_test
+          POSTGRES_PASSWORD: aichat_test
+          POSTGRES_DB: aichat_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U aichat_test -d aichat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis-test:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      postgres-gray:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: aichat_gray
+          POSTGRES_PASSWORD: aichat_gray
+          POSTGRES_DB: aichat_gray
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U aichat_gray -d aichat_gray"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis-gray:
+        image: redis:7-alpine
+        ports:
+          - 6381:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.8.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: |
+            ai-proxy-server/pnpm-lock.yaml
+            antdXStudy/pnpm-lock.yaml
+
+      - name: Install backend dependencies
+        working-directory: ai-proxy-server
+        run: pnpm install --frozen-lockfile
+
+      - name: Install frontend dependencies
+        working-directory: antdXStudy
+        run: pnpm install --frozen-lockfile
+
+      - name: Backend lint
+        working-directory: ai-proxy-server
+        run: pnpm lint
+
+      - name: Backend build
+        working-directory: ai-proxy-server
+        run: pnpm build
+
+      - name: Backend unit tests
+        working-directory: ai-proxy-server
+        run: pnpm test:unit
+
+      - name: Backend migration dry run
+        working-directory: ai-proxy-server
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://aichat_test:aichat_test@localhost:5433/aichat_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6380
+          REDIS_DB: 0
+          REDIS_KEY_PREFIX: "aiagent:test:"
+          UPLOAD_ROOT: uploads-test
+          AI_PROVIDER_MODE: mock
+          OPENAI_API_KEY: test-only
+          DEEPSEEK_API_KEY: test-only
+          GEMINI_API_KEY: test-only
+          CODEX_API_KEY: test-only
+          MODEL_CREDENTIAL_SECRET: test-model-credential-secret
+        run: pnpm prisma migrate deploy
+
+      - name: Backend integration tests
+        working-directory: ai-proxy-server
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://aichat_test:aichat_test@localhost:5433/aichat_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6380
+          REDIS_DB: 0
+          REDIS_KEY_PREFIX: "aiagent:test:"
+          UPLOAD_ROOT: uploads-test
+          AI_PROVIDER_MODE: mock
+          OPENAI_API_KEY: test-only
+          DEEPSEEK_API_KEY: test-only
+          GEMINI_API_KEY: test-only
+          CODEX_API_KEY: test-only
+          MODEL_CREDENTIAL_SECRET: test-model-credential-secret
+        run: pnpm test:integration
+
+      - name: Frontend build
+        working-directory: antdXStudy
+        env:
+          UMI_APP_API_BASE_URL: http://localhost:3001/api
+        run: pnpm build
+
+      - name: Frontend unit tests
+        working-directory: antdXStudy
+        run: pnpm test:unit
+
+      - name: Frontend component tests
+        working-directory: antdXStudy
+        run: pnpm test:components
+
+      - name: Install Playwright browser
+        working-directory: antdXStudy
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start gray mock provider
+        working-directory: ai-proxy-server
+        run: |
+          pnpm gray:mock-ai > ../gray-mock-ai.log 2>&1 &
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:3101/health && exit 0
+            sleep 1
+          done
+          cat ../gray-mock-ai.log
+          exit 1
+
+      - name: Prepare gray database
+        working-directory: ai-proxy-server
+        run: |
+          pnpm gray:db:migrate
+          pnpm gray:cleanup
+          pnpm gray:seed
+
+      - name: Start gray backend
+        working-directory: ai-proxy-server
+        run: |
+          pnpm gray:start:prod > ../gray-backend.log 2>&1 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:3001/api/ai/health && exit 0
+            sleep 1
+          done
+          cat ../gray-backend.log
+          exit 1
+
+      - name: Gray smoke
+        working-directory: antdXStudy
+        env:
+          UMI_APP_API_BASE_URL: http://localhost:3001/api
+          UMI_APP_USER_ID: 9a74c501-9d60-441b-b1ba-7b3eb469dce0
+          API_PROXY_TARGET: http://localhost:3001
+          GRAY_BACKEND_API_BASE_URL: http://localhost:3001/api
+        run: pnpm gray:test
+
+      - name: Upload gray diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gray-release-gate-diagnostics
+          path: |
+            gray-backend.log
+            gray-mock-ai.log
+            antdXStudy/playwright-gray-report
+            antdXStudy/test-results
+          if-no-files-found: ignore

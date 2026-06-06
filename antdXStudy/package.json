@@ -13,7 +13,8 @@
     "test:components": "vitest run src/pages",
     "test:e2e": "playwright test test/e2e",
     "test:visual": "playwright test test/visual",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "gray:test": "playwright test --config playwright.gray.config.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.3",

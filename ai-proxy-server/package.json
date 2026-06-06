@@ -16,6 +16,13 @@
     "test:env:up": "node test/scripts/docker-test-env.js up",
     "test:env:down": "node test/scripts/docker-test-env.js down",
     "test:db:migrate": "node test/scripts/run-with-test-env.js pnpm prisma migrate deploy",
+    "gray:env:up": "node test/scripts/docker-gray-env.js up",
+    "gray:env:down": "node test/scripts/docker-gray-env.js down",
+    "gray:db:migrate": "node test/scripts/run-with-gray-env.js pnpm prisma migrate deploy",
+    "gray:seed": "node test/scripts/run-with-gray-env.js pnpm ts-node test/gray/seed-gray.ts",
+    "gray:cleanup": "node test/scripts/run-with-gray-env.js pnpm ts-node test/gray/cleanup-gray.ts",
+    "gray:mock-ai": "node test/scripts/mock-gray-ai-provider.js",
+    "gray:start:prod": "node test/scripts/run-with-gray-env.js pnpm start:prod",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
   },

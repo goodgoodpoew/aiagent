@@ -1,7 +1,8 @@
 import { request } from '@umijs/max';
 import type { BackendMessageListResponse } from '@/store/adapters/messageAdapter';
+import { getApiBaseUrl } from './config';
 
-const BASE_URL = 'http://localhost:3001/api';
+const sessionsUrl = () => `${getApiBaseUrl()}/sessions`;
 
 export interface FetchMessagesParams {
   cursor?: string | null;
@@ -12,7 +13,7 @@ export function fetchSessionMessages(
   sessionId: string,
   params?: FetchMessagesParams,
 ): Promise<BackendMessageListResponse> {
-  return request(`${BASE_URL}/sessions/${sessionId}/messages`, {
+  return request(`${sessionsUrl()}/${sessionId}/messages`, {
     method: 'GET',
     params: {
       limit: params?.limit ?? 50,

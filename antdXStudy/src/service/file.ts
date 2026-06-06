@@ -1,9 +1,10 @@
 import { request } from '@umijs/max';
 import { parseApiEnvelopeResponse } from './request';
 import type { BackendFileListResponse } from '@/store/adapters/fileAdapter';
+import { getApiBaseUrl, getUserId } from './config';
 
-const BASE_URL = 'http://localhost:3001/api';
-const USER_ID = '9a74c501-9d60-441b-b1ba-7b3eb469dce0';
+const filesUrl = () => `${getApiBaseUrl()}/files`;
+const sessionsUrl = () => `${getApiBaseUrl()}/sessions`;
 
 export interface FetchFilesParams {
   cursor?: string | null;
@@ -13,8 +14,10 @@ export interface FetchFilesParams {
   sessionId?: string;
 }
 
-export function fetchFiles(params?: FetchFilesParams): Promise<BackendFileListResponse> {
-  return request(`${BASE_URL}/files`, {
+export function fetchFiles(
+  params?: FetchFilesParams,
+): Promise<BackendFileListResponse> {
+  return request(filesUrl(), {
     method: 'GET',
     params: {
       limit: params?.limit ?? 20,
@@ -30,7 +33,7 @@ export function fetchSessionFiles(
   sessionId: string,
   params?: Pick<FetchFilesParams, 'cursor' | 'limit'>,
 ): Promise<BackendFileListResponse> {
-  return request(`${BASE_URL}/sessions/${sessionId}/files`, {
+  return request(`${sessionsUrl()}/${sessionId}/files`, {
     method: 'GET',
     params: {
       limit: params?.limit ?? 50,
@@ -40,13 +43,13 @@ export function fetchSessionFiles(
 }
 
 export function deleteFile(id: string): Promise<void> {
-  return request(`${BASE_URL}/files/${id}`, {
+  return request(`${filesUrl()}/${id}`, {
     method: 'DELETE',
   });
 }
 
 export function getFileDownloadUrl(id: string) {
-  return `${BASE_URL}/files/${id}/download`;
+  return `${filesUrl()}/${id}/download`;
 }
 
 /**
@@ -67,10 +70,10 @@ export async function uploadFile(file: File): Promise<{
   formData.append('purpose', 'chat');
   formData.append('file', file);
 
-  const response = await fetch(`${BASE_URL}/files/upload`, {
+  const response = await fetch(`${filesUrl()}/upload`, {
     method: 'POST',
     headers: {
-      'X-User-Id': USER_ID,
+      'X-User-Id': getUserId(),
       'X-File-Name': encodeURIComponent(file.name),
     },
     body: formData,

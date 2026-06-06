@@ -1,8 +1,15 @@
 import { request } from '@umijs/max';
+import { getApiBaseUrl } from './config';
 
-const BASE_URL = 'http://localhost:3001/api';
+const providersUrl = () => `${getApiBaseUrl()}/model-providers`;
 
-export type ModelType = 'llm' | 'text-embedding' | 'rerank' | 'speech-to-text' | 'tts' | 'image';
+export type ModelType =
+  | 'llm'
+  | 'text-embedding'
+  | 'rerank'
+  | 'speech-to-text'
+  | 'tts'
+  | 'image';
 export type AdapterType = 'openai-compatible' | 'anthropic' | 'gemini';
 export type ProviderType = 'system' | 'custom';
 
@@ -119,30 +126,38 @@ export interface UpdateModelPayload {
 }
 
 export async function fetchProviders(): Promise<ModelProvider[]> {
-  return request(`${BASE_URL}/model-providers`);
+  return request(providersUrl());
 }
 
 export async function fetchProvider(id: string): Promise<ModelProvider> {
-  return request(`${BASE_URL}/model-providers/${id}`);
+  return request(`${providersUrl()}/${id}`);
 }
 
-export async function createProvider(data: CreateProviderPayload): Promise<ModelProvider> {
-  return request(`${BASE_URL}/model-providers`, { method: 'POST', data });
+export async function createProvider(
+  data: CreateProviderPayload,
+): Promise<ModelProvider> {
+  return request(providersUrl(), { method: 'POST', data });
 }
 
-export async function updateProvider(id: string, data: UpdateProviderPayload): Promise<ModelProvider> {
-  return request(`${BASE_URL}/model-providers/${id}`, { method: 'PATCH', data });
+export async function updateProvider(
+  id: string,
+  data: UpdateProviderPayload,
+): Promise<ModelProvider> {
+  return request(`${providersUrl()}/${id}`, { method: 'PATCH', data });
 }
 
 export async function deleteProvider(id: string): Promise<ModelProvider> {
-  return request(`${BASE_URL}/model-providers/${id}`, { method: 'DELETE' });
+  return request(`${providersUrl()}/${id}`, { method: 'DELETE' });
 }
 
 export async function createCredential(
   providerId: string,
   data: CredentialPayload,
 ): Promise<ProviderCredential> {
-  return request(`${BASE_URL}/model-providers/${providerId}/credentials`, { method: 'POST', data });
+  return request(`${providersUrl()}/${providerId}/credentials`, {
+    method: 'POST',
+    data,
+  });
 }
 
 export async function updateCredential(
@@ -150,38 +165,59 @@ export async function updateCredential(
   credentialId: string,
   data: UpdateCredentialPayload,
 ): Promise<ProviderCredential> {
-  return request(`${BASE_URL}/model-providers/${providerId}/credentials/${credentialId}`, {
-    method: 'PATCH',
-    data,
-  });
+  return request(
+    `${providersUrl()}/${providerId}/credentials/${credentialId}`,
+    {
+      method: 'PATCH',
+      data,
+    },
+  );
 }
 
 export async function setDefaultCredential(
   providerId: string,
   credentialId: string,
 ): Promise<ProviderCredential> {
-  return request(`${BASE_URL}/model-providers/${providerId}/credentials/${credentialId}/default`, {
-    method: 'POST',
-  });
+  return request(
+    `${providersUrl()}/${providerId}/credentials/${credentialId}/default`,
+    {
+      method: 'POST',
+    },
+  );
 }
 
-export async function validateCredential(providerId: string, credentialId: string) {
-  return request(`${BASE_URL}/model-providers/${providerId}/credentials/${credentialId}/validate`, {
-    method: 'POST',
-  });
+export async function validateCredential(
+  providerId: string,
+  credentialId: string,
+) {
+  return request(
+    `${providersUrl()}/${providerId}/credentials/${credentialId}/validate`,
+    {
+      method: 'POST',
+    },
+  );
 }
 
 export async function deleteCredential(
   providerId: string,
   credentialId: string,
 ): Promise<ProviderCredential> {
-  return request(`${BASE_URL}/model-providers/${providerId}/credentials/${credentialId}`, {
-    method: 'DELETE',
-  });
+  return request(
+    `${providersUrl()}/${providerId}/credentials/${credentialId}`,
+    {
+      method: 'DELETE',
+    },
+  );
 }
 
-export async function createModel(providerId: string, data: ModelPayload): Promise<ProviderModel> {
-  return request(`${BASE_URL}/model-providers/${providerId}/models`, { method: 'POST', data });
+export async function createModel(
+  providerId: string,
+  data: ModelPayload,
+): Promise<ProviderModel> {
+  return request(`${providersUrl()}/${providerId}/models`, {
+    method: 'POST',
+    data,
+  });
 }
 
 export async function updateModel(
@@ -189,20 +225,26 @@ export async function updateModel(
   modelId: string,
   data: UpdateModelPayload,
 ): Promise<ProviderModel> {
-  return request(`${BASE_URL}/model-providers/${providerId}/models/${modelId}`, {
+  return request(`${providersUrl()}/${providerId}/models/${modelId}`, {
     method: 'PATCH',
     data,
   });
 }
 
-export async function setDefaultModel(providerId: string, modelId: string): Promise<ProviderModel> {
-  return request(`${BASE_URL}/model-providers/${providerId}/models/${modelId}/default`, {
+export async function setDefaultModel(
+  providerId: string,
+  modelId: string,
+): Promise<ProviderModel> {
+  return request(`${providersUrl()}/${providerId}/models/${modelId}/default`, {
     method: 'POST',
   });
 }
 
-export async function deleteModel(providerId: string, modelId: string): Promise<ProviderModel> {
-  return request(`${BASE_URL}/model-providers/${providerId}/models/${modelId}`, {
+export async function deleteModel(
+  providerId: string,
+  modelId: string,
+): Promise<ProviderModel> {
+  return request(`${providersUrl()}/${providerId}/models/${modelId}`, {
     method: 'DELETE',
   });
 }

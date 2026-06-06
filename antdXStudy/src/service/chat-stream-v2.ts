@@ -3,9 +3,7 @@ import {
   type ChatStreamRequestV2,
   type StreamEventEnvelope,
 } from './stream-protocol';
-
-const BASE_URL = 'http://localhost:3001/api';
-const USER_ID = '9a74c501-9d60-441b-b1ba-7b3eb469dce0';
+import { getApiBaseUrl, getUserId } from './config';
 
 export interface ChatStreamV2Handlers {
   onEvent: (event: StreamEventEnvelope) => void;
@@ -45,11 +43,11 @@ export async function sendChatStreamV2(
 ) {
   // 这里不用 EventSource，因为主链路需要 POST JSON body 传递 input/runtime/context。
   // fetch 返回的 response.body 是 ReadableStream，可以一边读取一边把 SSE 事件交给 Redux。
-  const response = await fetch(`${BASE_URL}/ai/chat/stream/v2`, {
+  const response = await fetch(`${getApiBaseUrl()}/ai/chat/stream/v2`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-User-Id': USER_ID,
+      'X-User-Id': getUserId(),
     },
     body: JSON.stringify({
       ...payload,

@@ -1,5 +1,5 @@
-const BASE_URL = 'http://localhost:3001/api';
-const USER_ID = '9a74c501-9d60-441b-b1ba-7b3eb469dce0';
+import { getApiBaseUrl, getUserId } from './config';
+
 const MAX_RETRY_DELAY = 5000;
 const LAST_EVENT_ID_KEY = 'sessionEvents.lastEventId';
 
@@ -80,7 +80,9 @@ function getLastEventId() {
   return localStorage.getItem(LAST_EVENT_ID_KEY) || undefined;
 }
 
-export function subscribeSessionEvents(handlers: SessionEventHandlers): () => void {
+export function subscribeSessionEvents(
+  handlers: SessionEventHandlers,
+): () => void {
   let stopped = false;
   let retryDelay = 1000;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
@@ -115,7 +117,9 @@ export function subscribeSessionEvents(handlers: SessionEventHandlers): () => vo
     }
 
     if (event.event === 'message.completed') {
-      handlers.onMessageCompleted?.(payload as unknown as MessageCompletedEvent);
+      handlers.onMessageCompleted?.(
+        payload as unknown as MessageCompletedEvent,
+      );
       return;
     }
 
@@ -127,9 +131,9 @@ export function subscribeSessionEvents(handlers: SessionEventHandlers): () => vo
 
     try {
       const lastEventId = getLastEventId();
-      const response = await fetch(`${BASE_URL}/sessions/events`, {
+      const response = await fetch(`${getApiBaseUrl()}/sessions/events`, {
         headers: {
-          'X-User-Id': USER_ID,
+          'X-User-Id': getUserId(),
           ...(lastEventId ? { 'Last-Event-ID': lastEventId } : {}),
         },
         signal: controller.signal,
@@ -159,9 +163,34 @@ export function subscribeSessionEvents(handlers: SessionEventHandlers): () => vo
       }
     } catch (error) {
       // #region agent log
-      fetch('http://127.0.0.1:7714/ingest/4f43500c-5ac0-4e7a-a0af-59ca55c3dae3',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'555fd6'},body:JSON.stringify({sessionId:'555fd6',location:'session-events.ts:161',message:'SSE连接错误',data:{error:error instanceof Error?error.message:String(error),stopped,lastEventId:getLastEventId()},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      fetch(
+        'http://127.0.0.1:7714/ingest/4f43500c-5ac0-4e7a-a0af-59ca55c3dae3',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Debug-Session-Id': '555fd6',
+          },
+          body: JSON.stringify({
+            sessionId: '555fd6',
+            location: 'session-events.ts:161',
+            message: 'SSE连接错误',
+            data: {
+              error: error instanceof Error ? error.message : String(error),
+              stopped,
+              lastEventId: getLastEventId(),
+            },
+            timestamp: Date.now(),
+            runId: 'run1',
+            hypothesisId: 'A',
+          }),
+        },
+      ).catch(() => {});
       // #endregion
-      if (!stopped && !(error instanceof DOMException && error.name === 'AbortError')) {
+      if (
+        !stopped &&
+        !(error instanceof DOMException && error.name === 'AbortError')
+      ) {
         handlers.onError?.(error);
       }
     }

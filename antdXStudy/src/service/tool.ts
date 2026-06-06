@@ -1,6 +1,7 @@
 import { request } from '@umijs/max';
+import { getApiBaseUrl } from './config';
 
-const BASE_URL = 'http://localhost:3001/api';
+const toolsUrl = () => `${getApiBaseUrl()}/tools`;
 
 export type ToolSource = 'builtin' | 'custom' | 'mcp';
 
@@ -14,5 +15,5 @@ export interface ToolDefinition {
 }
 
 export async function fetchTools(): Promise<{ tools: ToolDefinition[] }> {
-  return request(`${BASE_URL}/tools`);
+  return request(toolsUrl());
 }
