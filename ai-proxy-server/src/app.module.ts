@@ -30,17 +30,25 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) => ({
-        stores: [
-          createKeyv({
-            url: `redis://${config.get<string>('redis.host', 'localhost')}:${config.get<number>('redis.port', 6379)}`,
-            ...(config.get<string>('redis.password')
-              ? { password: config.get<string>('redis.password') }
-              : {}),
-          }),
-        ],
-        ttl: config.get<number>('cache.chatTtl', 300) * 1000,
-      }),
+      useFactory: async (config: ConfigService) => {
+        const redisKeyPrefix = config.get<string>('redis.keyPrefix', 'aiproxy:');
+        return {
+          stores: [
+            createKeyv(
+              {
+                url: `redis://${config.get<string>('redis.host', 'localhost')}:${config.get<number>('redis.port', 6379)}`,
+                ...(config.get<string>('redis.password')
+                  ? { password: config.get<string>('redis.password') }
+                  : {}),
+              },
+              {
+                namespace: redisKeyPrefix.replace(/:+$/, ''),
+              },
+            ),
+          ],
+          ttl: config.get<number>('cache.chatTtl', 300) * 1000,
+        };
+      },
     }),
     RedisModule.forRootAsync(),
     ThrottleModule,

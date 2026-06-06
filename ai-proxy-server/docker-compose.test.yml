@@ -1,0 +1,29 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: ai-chat-db-test
+    environment:
+      POSTGRES_USER: aichat_test
+      POSTGRES_PASSWORD: aichat_test
+      POSTGRES_DB: aichat_test
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U aichat_test -d aichat_test']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: ai-chat-redis-test
+    ports:
+      - '6380:6379'
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy noeviction
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10

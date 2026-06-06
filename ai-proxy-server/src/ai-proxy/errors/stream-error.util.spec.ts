@@ -9,7 +9,7 @@ function createAxiosError(status?: number, code?: string, message = 'Request fai
       status,
       statusText: String(status),
       headers: {},
-      config: {} as AxiosError['config'],
+      config: {} as NonNullable<AxiosError['config']>,
       data: { error: 'upstream' },
     };
   }

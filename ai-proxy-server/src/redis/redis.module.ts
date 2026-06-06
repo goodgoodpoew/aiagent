@@ -23,7 +23,7 @@ export class RedisModule {
               port: config.get<number>('redis.port', 6379),
               password: config.get<string>('redis.password') || undefined,
               db: config.get<number>('redis.db', 0),
-              keyPrefix: 'aiproxy:',
+              keyPrefix: config.get<string>('redis.keyPrefix', 'aiproxy:'),
               retryStrategy: (times) => {
                 const delay = Math.min(times * 50, 2000);
                 logger.warn(`Redis 重连第 ${times} 次，延迟 ${delay}ms`);

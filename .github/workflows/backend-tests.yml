@@ -1,0 +1,93 @@
+name: Backend Tests
+
+on:
+  pull_request:
+    paths:
+      - 'ai-proxy-server/**'
+      - '.github/workflows/backend-tests.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'ai-proxy-server/**'
+      - '.github/workflows/backend-tests.yml'
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-proxy-server
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: aichat_test
+          POSTGRES_PASSWORD: aichat_test
+          POSTGRES_DB: aichat_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U aichat_test -d aichat_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://aichat_test:aichat_test@localhost:5433/aichat_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6380
+      REDIS_DB: 0
+      REDIS_KEY_PREFIX: aiagent:test:
+      UPLOAD_ROOT: uploads-test
+      AI_PROVIDER_MODE: mock
+      OPENAI_API_KEY: test-only
+      DEEPSEEK_API_KEY: test-only
+      GEMINI_API_KEY: test-only
+      CODEX_API_KEY: test-only
+      MODEL_CREDENTIAL_SECRET: test-model-credential-secret
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.8.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: ai-proxy-server/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Integration tests
+        run: pnpm test:integration

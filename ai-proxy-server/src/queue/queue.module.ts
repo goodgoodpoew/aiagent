@@ -18,6 +18,7 @@ import { SessionModule } from '@/session/session.module';
           password: config.get<string>('redis.password') || undefined,
           db: config.get<number>('redis.db', 0),
         },
+        prefix: config.get<string>('redis.keyPrefix', 'aiproxy:').replace(/:+$/, ''),
         defaultJobOptions: {
           removeOnComplete: 100,
           removeOnFail: 500,
