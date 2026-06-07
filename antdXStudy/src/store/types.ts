@@ -64,6 +64,8 @@ export interface ChatDraft {
   stream: boolean;
   /** 默认只展示思考状态/摘要；完整 reasoning 需要显式改为 full。 */
   reasoning?: ChatRuntimeOptions['reasoning'];
+  /** 是否在发送消息时附带位置工具与 clientLocation。 */
+  locationEnabled?: boolean;
   /** 待发送的附件列表 */
   attachments: ChatAttachment[];
 }

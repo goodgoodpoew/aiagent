@@ -6,6 +6,7 @@ import type { StreamEventScope, StreamEventType, StreamFailureStage } from '@/st
 import type { ChatStreamRequestV2 } from '@/streaming/dto/chat-stream-v2.dto';
 import type { ToolDefinition } from '@/tools/dto/tool-definition.dto';
 import type { FileReadToolResult } from '@/tools/file-read-tool.types';
+import type { ClientLocationInput } from '@/tools/location-acquisition.types';
 
 export interface AgentRuntimeInput {
   dto: ChatStreamRequestV2;
@@ -47,6 +48,7 @@ export interface AgentRunState {
   autoGenerateSessionName: boolean;
   textProjection: string;
   fileIds: string[];
+  clientLocation?: ClientLocationInput;
   attachmentRead?: FileReadToolResult;
   prepared?: PreparedSendMessage;
   providerRequest?: ChatRequestDto;

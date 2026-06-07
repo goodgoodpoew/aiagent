@@ -60,6 +60,12 @@ export interface ChatContextInput {
   includeHistory?: boolean;
   historyLimit?: number;
   fileIds?: string[];
+  clientLocation?: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    label?: string;
+  };
   resources?: Array<{
     uri: string;
     type?: string;

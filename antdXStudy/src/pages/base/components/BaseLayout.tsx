@@ -71,6 +71,7 @@ const BaseLayout: FC = () => {
   const input = useAppSelector((state) => state.content.input);
   const attachments = useAppSelector((state) => state.content.attachments);
   const reasoning = useAppSelector((state) => state.content.reasoning);
+  const locationEnabled = useAppSelector((state) => state.content.locationEnabled !== false);
   const sessionsLoading = useAppSelector((state) => state.sessions.loading);
   const messagesLoading = useAppSelector((state) =>
     currentSessionId ? state.messages.loadingBySessionId[currentSessionId] : false,
@@ -518,6 +519,18 @@ const BaseLayout: FC = () => {
             />
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               强度仅对 OpenAI 等支持 reasoning_effort 的模型生效
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              位置
+            </Typography.Text>
+            <Switch
+              size="small"
+              checked={locationEnabled}
+              disabled={isStreaming}
+              onChange={(enabled) => dispatch(updateDraft({ locationEnabled: enabled }))}
+            />
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              开启后发送消息时会请求浏览器定位，并启用位置工具
             </Typography.Text>
           </Space>
 

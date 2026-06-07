@@ -33,6 +33,7 @@ import {
 import { subscribeSessionEvents } from '@/service/session-events';
 import { fetchSessionMessages } from '@/service/message';
 import { sendChatStreamV2 } from '@/service/chat-stream-v2';
+import { acquireClientLocation, LOCATION_ACQUISITION_TOOL_REF, type ClientLocationInput } from '@/service/client-location';
 import {
   STREAM_PROTOCOL_V2,
   type ChatStreamRequestV2,
@@ -337,6 +338,20 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
   };
 
   try {
+    let clientLocation: ClientLocationInput | undefined;
+
+    if (state.content.locationEnabled !== false) {
+      const locationResult = await acquireClientLocation();
+      if (locationResult.ok) {
+        clientLocation = locationResult.location;
+      }
+    }
+
+    const context: ChatStreamRequestV2['context'] = {
+      ...(readyFileIds.length ? { fileIds: readyFileIds } : {}),
+      ...(clientLocation ? { clientLocation } : {}),
+    };
+
     const handleStreamEvent = (event: StreamEventEnvelope) => {
       // 所有后端 SSE 都是 StreamEventEnvelope；sessionId/messageId 在 envelope 顶层，
       // data 里才是该事件自己的负载。先同步 session，再把事件交给 messageStore 更新消息。
@@ -391,7 +406,7 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
         sessionId: originalSessionId,
         requestId,
         clientMessageId,
-        context: readyFileIds.length ? { fileIds: readyFileIds } : undefined,
+        ...(Object.keys(context).length ? { context } : {}),
         // 主聊天页从这里开始只发送 v2 协议；provider 原始 chunk 由后端统一转换为 message.part.*。
         // 这样前端只关心“消息部件如何变化”，不用适配 OpenAI/DeepSeek 等供应商的私有字段。
         runtime: {
@@ -403,6 +418,9 @@ export const sendCurrentMessage = () => async (dispatch: AppDispatch, getState: 
           stream: true,
           reasoning: state.content.reasoning,
           autoGenerateSessionName: true,
+          ...(state.content.locationEnabled !== false
+            ? { tools: [LOCATION_ACQUISITION_TOOL_REF] }
+            : {}),
         },
       },
       {

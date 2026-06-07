@@ -1,5 +1,6 @@
 import { NativeAgentEngineService } from './native-agent-engine.service';
 import { READ_ATTACHED_FILES_TOOL_NAME } from '@/tools/file-read-tool.types';
+import { LOCATION_ACQUISITION_TOOL_NAME } from '@/tools/location-acquisition.types';
 import type { AgentRunContext, AgentRunState, AgentRuntimeInput } from '../agent-runtime.types';
 import type { ToolDefinition } from '@/tools/dto/tool-definition.dto';
 
@@ -166,5 +167,31 @@ describe('NativeAgentEngineService 文件读取工具接线', () => {
 
     expect(toolGateway.findInternalTool).not.toHaveBeenCalled();
     expect(toolGateway.execute).not.toHaveBeenCalled();
+  });
+
+  it('执行 location_acquisition 时注入 clientLocation', () => {
+    const service = createService({
+      findInternalTool: jest.fn(),
+      execute: jest.fn(),
+    });
+    const state = {
+      clientLocation: {
+        latitude: 31.2304,
+        longitude: 121.4737,
+        label: '上海市黄浦区',
+      },
+    } as unknown as AgentRunState;
+
+    const args = (service as never as {
+      buildToolExecutionArguments: (
+        toolName: string,
+        parsedArguments: Record<string, unknown>,
+        state: AgentRunState,
+      ) => Record<string, unknown>;
+    }).buildToolExecutionArguments(LOCATION_ACQUISITION_TOOL_NAME, {}, state);
+
+    expect(args).toEqual({
+      location: '上海市黄浦区',
+    });
   });
 });

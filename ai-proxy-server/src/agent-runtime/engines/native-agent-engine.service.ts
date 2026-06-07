@@ -24,6 +24,11 @@ import {
   isFileReadToolResult,
   READ_ATTACHED_FILES_TOOL_NAME,
 } from '@/tools/file-read-tool.types';
+import {
+  formatClientLocation,
+  LOCATION_ACQUISITION_TOOL_NAME,
+  parseClientLocation,
+} from '@/tools/location-acquisition.types';
 import type { AgentEnginePort } from '../ports/agent-engine.port';
 import { DefaultToolGatewayService } from '../gateways/default-tool-gateway.service';
 import type {
@@ -132,6 +137,7 @@ export class NativeAgentEngineService implements AgentEnginePort {
     state.failureStage = 'prepare';
     state.textProjection = this.extractTextProjection(input.dto.input.parts);
     state.fileIds = this.extractFileIds(input.dto);
+    state.clientLocation = parseClientLocation(input.dto.context?.clientLocation) ?? undefined;
   }
 
   private async resolveModel(
@@ -636,7 +642,7 @@ export class NativeAgentEngineService implements AgentEnginePort {
     const executionResult = await this.toolGateway.execute({
       toolCallId: completedToolCall.toolCallId,
       tool,
-      arguments: parsedArguments.value,
+      arguments: this.buildToolExecutionArguments(pendingToolCall.toolName, parsedArguments.value, state),
     });
     const completedToolResult: CompletedToolResultPartInput = {
       toolCallId: completedToolCall.toolCallId,
@@ -832,6 +838,21 @@ export class NativeAgentEngineService implements AgentEnginePort {
       .trim();
 
     return text || '[空文本消息]';
+  }
+
+  private buildToolExecutionArguments(
+    toolName: string,
+    parsedArguments: Record<string, unknown>,
+    state: AgentRunState,
+  ): Record<string, unknown> {
+    if (toolName !== LOCATION_ACQUISITION_TOOL_NAME || !state.clientLocation) {
+      return parsedArguments;
+    }
+
+    return {
+      ...parsedArguments,
+      location: formatClientLocation(state.clientLocation),
+    };
   }
 
   private extractFileIds(dto: AgentRuntimeInput['dto']): string[] {

@@ -11,10 +11,16 @@ import type {
   ToolExecutionRequest,
   ToolExecutionResult,
 } from '../dto/tool-definition.dto';
+import {
+  buildLocationAcquisitionContext,
+  LOCATION_ACQUISITION_TOOL_NAME,
+  parseLocationAcquisitionArguments,
+  type LocationAcquisitionToolResult,
+} from '../location-acquisition.types';
 
 @Injectable()
 export class BuiltinToolAdapter {
-  constructor(private readonly fileService: FileService) {}
+  constructor(private readonly fileService: FileService) { }
 
   private readonly definitions: ToolDefinition[] = [
     {
@@ -56,6 +62,17 @@ export class BuiltinToolAdapter {
       enabled: true,
       internal: true,
     },
+    {
+      source: 'builtin',
+      name: LOCATION_ACQUISITION_TOOL_NAME,
+      description: '获取用户当前位置，用于回答天气、附近地点、路线或与地理位置相关的问题。',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        additionalProperties: false,
+      },
+      enabled: true,
+    },
   ];
 
   listTools(): ToolDefinition[] {
@@ -69,6 +86,10 @@ export class BuiltinToolAdapter {
 
     if (request.tool.name === READ_ATTACHED_FILES_TOOL_NAME) {
       return this.readAttachedFiles(request);
+    }
+
+    if (request.tool.name === LOCATION_ACQUISITION_TOOL_NAME) {
+      return this.acquireLocation(request);
     }
 
     return {
@@ -153,6 +174,31 @@ export class BuiltinToolAdapter {
           reason: file.reason,
         })),
       ],
+    };
+
+    return {
+      toolCallId: request.toolCallId,
+      toolName: request.tool.name,
+      result,
+    };
+  }
+
+  private acquireLocation(request: ToolExecutionRequest): ToolExecutionResult {
+    const args = parseLocationAcquisitionArguments(request.arguments);
+    if (!args) {
+      return {
+        toolCallId: request.toolCallId,
+        toolName: request.tool.name,
+        error: {
+          code: 'LOCATION_UNAVAILABLE',
+          message: '用户位置不可用，请授权位置权限或在消息中说明所在城市。',
+        },
+      };
+    }
+
+    const result: LocationAcquisitionToolResult = {
+      location: args.location,
+      contextText: buildLocationAcquisitionContext(args.location),
     };
 
     return {

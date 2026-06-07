@@ -9,6 +9,12 @@ const fetchSessionMessages = vi.fn();
 const sendChatStreamV2 = vi.fn();
 const subscribeSessionEvents = vi.fn();
 const fetchSessionFiles = vi.fn();
+const acquireClientLocation = vi.fn();
+
+vi.mock('@/service/client-location', () => ({
+  acquireClientLocation: (...a: unknown[]) => acquireClientLocation(...a),
+  LOCATION_ACQUISITION_TOOL_REF: { source: 'builtin', name: 'location_acquisition' },
+}));
 
 vi.mock('@/service/session', () => ({
   createSession: (...a: unknown[]) => createSession(...a),
@@ -83,8 +89,17 @@ beforeEach(() => {
     sendChatStreamV2,
     subscribeSessionEvents,
     fetchSessionFiles,
+    acquireClientLocation,
   ].forEach((m) => m.mockReset());
   fetchSessionFiles.mockResolvedValue({ files: [], cursor: null });
+  acquireClientLocation.mockResolvedValue({
+    ok: true,
+    location: {
+      latitude: 31.2304,
+      longitude: 121.4737,
+      label: '上海市黄浦区',
+    },
+  });
 });
 
 describe('loadSessions / loadMessages', () => {
@@ -162,6 +177,22 @@ describe('sendCurrentMessage 完整流式链路', () => {
     expect(state.messages.statusByMessageId['assistant-real']).toBe('done');
     // 输入区已清空
     expect(state.content.input).toBe('');
+    expect(acquireClientLocation).toHaveBeenCalled();
+    expect(sendChatStreamV2).toHaveBeenCalledWith(
+      expect.objectContaining({
+        context: {
+          clientLocation: {
+            latitude: 31.2304,
+            longitude: 121.4737,
+            label: '上海市黄浦区',
+          },
+        },
+        runtime: expect.objectContaining({
+          tools: [{ source: 'builtin', name: 'location_acquisition' }],
+        }),
+      }),
+      expect.any(Object),
+    );
   });
 
   it('空输入或正在流式时不发送', async () => {
