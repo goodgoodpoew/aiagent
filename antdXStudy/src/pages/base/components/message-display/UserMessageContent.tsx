@@ -16,18 +16,37 @@ interface AttachmentMetadata {
     name: string;
     type?: string;
     size?: number;
+    status?: 'ready' | 'done' | 'failed';
+    tokenEstimate?: number;
+  }>;
+  unavailableAttachments?: Array<{
+    fileId: string;
+    name?: string;
+    type?: string;
+    reason?: string;
   }>;
 }
 
 function getUserMessageAttachments(message: ChatMessage): MessageAttachmentItem[] {
   const metadata = message.metadata as AttachmentMetadata | null | undefined;
-
-  return (metadata?.attachments ?? []).map((attachment) => ({
+  const readableItems = (metadata?.attachments ?? []).map((attachment) => ({
     id: attachment.fileId,
     name: attachment.name,
     type: attachment.type,
     size: attachment.size,
+    status: attachment.status ?? 'ready',
+    tokenEstimate: attachment.tokenEstimate,
   }));
+
+  const unavailableItems = (metadata?.unavailableAttachments ?? []).map((attachment) => ({
+    id: attachment.fileId,
+    name: attachment.name ?? attachment.fileId,
+    type: attachment.type,
+    status: 'failed' as const,
+    reason: attachment.reason,
+  }));
+
+  return [...readableItems, ...unavailableItems];
 }
 
 const UserMessageContent: FC<UserMessageContentProps> = ({ message }) => {

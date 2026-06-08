@@ -25,20 +25,21 @@
 .ai-message-display__attachment-tag {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   max-width: 100%;
   margin-inline-end: 0;
-  border-color: var(--ai-message-display-border);
-  background: var(--ai-message-display-fill);
 }
 
 .ai-message-display__attachment-name {
   max-width: 180px;
   font-size: var(--ai-message-display-font-size-sm);
+  line-height: 1.35;
 }
 
 .ai-message-display__attachment-meta {
   color: var(--ai-message-display-text-secondary);
   font-size: var(--ai-message-display-font-size-sm);
+  overflow-wrap: anywhere;
 }
 
 .ai-message-display__fallback {

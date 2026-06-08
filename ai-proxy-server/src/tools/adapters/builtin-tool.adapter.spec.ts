@@ -51,6 +51,7 @@ describe('BuiltinToolAdapter', () => {
           name: '需求.txt',
           type: 'text/plain',
           status: 'ready',
+          tokenEstimate: 3,
         },
       ],
       readResults: [

@@ -14,6 +14,7 @@ import {
   UpdateProviderModelDto,
 } from './dto/model-provider.dto';
 import type { AdapterType, CredentialConfig, ModelType } from './model-provider.types';
+import { ProviderCapabilityService } from './provider-capability.service';
 
 export const MODEL_PROVIDER_EVENTS = {
   PROVIDER_CHANGED: 'model-provider.changed',
@@ -37,6 +38,7 @@ export class ModelProviderService {
     private readonly crypto: CredentialCryptoService,
     private readonly eventEmitter: EventEmitter2,
     private readonly httpService: HttpService,
+    private readonly capabilityService: ProviderCapabilityService,
   ) {}
 
   async findAll() {
@@ -289,7 +291,7 @@ export class ModelProviderService {
     }
 
     this.emitModelsChanged(provider.name);
-    return model;
+    return this.serializeModel(model, provider);
   }
 
   async updateModel(providerId: string, modelId: string, dto: UpdateProviderModelDto) {
@@ -319,7 +321,7 @@ export class ModelProviderService {
 
     await this.ensureDefaultModel(providerId, model.modelType);
     this.emitModelsChanged(provider.name);
-    return model;
+    return this.serializeModel(model, provider);
   }
 
   async setDefaultModel(providerId: string, modelId: string) {
@@ -331,7 +333,7 @@ export class ModelProviderService {
       data: { isDefault: true, enabled: true },
     });
     this.emitModelsChanged(provider.name);
-    return model;
+    return this.serializeModel(model, provider);
   }
 
   async deleteModel(providerId: string, modelId: string) {
@@ -343,7 +345,7 @@ export class ModelProviderService {
     });
     await this.ensureDefaultModel(providerId, current.modelType);
     this.emitModelsChanged(provider.name);
-    return model;
+    return this.serializeModel(model, provider);
   }
 
   decryptCredentialConfig(encryptedConfig: string): CredentialConfig {
@@ -447,6 +449,7 @@ export class ModelProviderService {
     const credentials =
       provider.credentials?.map((credential) => this.serializeCredential(credential)) ?? [];
     const models: any[] = provider.models ?? [];
+    const serializedModels = models.map((model) => this.serializeModel(model, provider));
     const modelStats = models.reduce((acc: Record<string, number>, model: any) => {
       if (model.enabled) acc[model.modelType] = (acc[model.modelType] ?? 0) + 1;
       return acc;
@@ -466,7 +469,7 @@ export class ModelProviderService {
       configured: credentials.some((credential) => credential.enabled),
       credentials,
       modelStats,
-      models: includeGroups ? undefined : models,
+      models: includeGroups ? undefined : serializedModels,
       createdAt: provider.createdAt,
       updatedAt: provider.updatedAt,
     };
@@ -475,7 +478,7 @@ export class ModelProviderService {
 
     return {
       ...base,
-      modelsByType: models.reduce(
+      modelsByType: serializedModels.reduce(
         (acc: Record<ModelType, unknown[]>, model: any) => {
           const modelType = model.modelType as ModelType;
           acc[modelType] = acc[modelType] ?? [];
@@ -484,6 +487,33 @@ export class ModelProviderService {
         },
         {} as Record<ModelType, unknown[]>,
       ),
+    };
+  }
+
+  private serializeModel(model: any, provider: any) {
+    return {
+      id: model.id,
+      providerId: model.providerId,
+      modelType: model.modelType,
+      name: model.name,
+      displayName: model.displayName,
+      features: model.features,
+      capabilities: this.capabilityService.resolveModelCapabilities({
+        providerName: provider.name,
+        adapterType: provider.adapterType as AdapterType,
+        modelName: model.name,
+        modelType: model.modelType as ModelType,
+        features: model.features,
+      }),
+      contextSize: model.contextSize,
+      maxOutput: model.maxOutput,
+      defaultParameters: model.defaultParameters,
+      pricing: model.pricing,
+      deprecated: model.deprecated,
+      isDefault: model.isDefault,
+      enabled: model.enabled,
+      createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
     };
   }
 

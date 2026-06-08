@@ -35,6 +35,17 @@ export interface ProviderToolCallingCapability {
   supported: boolean;
 }
 
+export interface ProviderModelCapabilities {
+  chat: boolean;
+  stream: boolean;
+  toolCalling: ProviderToolCallingCapability;
+  reasoning: ProviderReasoningCapability;
+  vision: boolean;
+  jsonMode: boolean;
+}
+
+export type ProviderModelFeatures = Record<string, unknown> | string[] | null | undefined;
+
 export interface CredentialConfig {
   apiKey?: string;
   baseUrl?: string;
@@ -55,6 +66,7 @@ export interface ResolvedChatProvider {
   baseUrl: string;
   apiKey: string;
   adapterType: AdapterType;
+  capabilities?: ProviderModelCapabilities;
   reasoning?: ProviderReasoningCapability;
   toolCalling?: ProviderToolCallingCapability;
 }

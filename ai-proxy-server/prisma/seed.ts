@@ -41,6 +41,7 @@ interface SeedProvider {
   env: string;
   providerType?: string;
   models: string[];
+  features?: string[];
 }
 
 const providers: SeedProvider[] = [
@@ -51,6 +52,7 @@ const providers: SeedProvider[] = [
     adapterType: 'openai-compatible',
     env: 'OPENAI_API_KEY',
     models: ['gpt-4o', 'gpt-4o-mini'],
+    features: ['chat', 'stream', 'tools', 'reasoning-effort', 'json-mode'],
   },
   {
     name: 'deepseek',
@@ -59,6 +61,7 @@ const providers: SeedProvider[] = [
     adapterType: 'openai-compatible',
     env: 'DEEPSEEK_API_KEY',
     models: ['deepseek-chat', 'deepseek-reasoner'],
+    features: ['chat', 'stream', 'reasoning'],
   },
   {
     name: 'moonshot',
@@ -131,6 +134,7 @@ const providers: SeedProvider[] = [
     adapterType: 'anthropic',
     env: 'CLAUDE_API_KEY',
     models: ['claude-3-5-sonnet-latest'],
+    features: ['chat', 'stream'],
   },
   {
     name: 'gemini',
@@ -139,6 +143,7 @@ const providers: SeedProvider[] = [
     adapterType: 'gemini',
     env: 'GEMINI_API_KEY',
     models: ['gemini-2.5-flash'],
+    features: ['chat', 'stream'],
   },
   {
     name: 'custom',
@@ -208,6 +213,7 @@ async function main() {
         },
         update: {
           displayName: modelName,
+          features: item.features ?? ['chat', 'stream'],
           isDefault: index === 0,
           enabled: true,
         },
@@ -216,7 +222,7 @@ async function main() {
           modelType: 'llm',
           name: modelName,
           displayName: modelName,
-          features: ['chat', 'stream'],
+          features: item.features ?? ['chat', 'stream'],
           isDefault: index === 0,
           enabled: true,
         },

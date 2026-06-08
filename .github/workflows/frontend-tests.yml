@@ -1,0 +1,56 @@
+name: Frontend Tests
+
+on:
+  pull_request:
+    paths:
+      - 'antdXStudy/**'
+      - '.github/workflows/frontend-tests.yml'
+      - 'scripts/check-generated-artifacts.sh'
+  push:
+    branches:
+      - main
+    paths:
+      - 'antdXStudy/**'
+      - '.github/workflows/frontend-tests.yml'
+      - 'scripts/check-generated-artifacts.sh'
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: antdXStudy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check generated artifacts
+        working-directory: .
+        run: bash scripts/check-generated-artifacts.sh
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.8.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: antdXStudy/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          UMI_APP_API_BASE_URL: http://localhost:3001/api
+        run: pnpm build
+
+      - name: Unit tests
+        run: pnpm test:unit
+
+      - name: Component tests
+        run: pnpm test:components

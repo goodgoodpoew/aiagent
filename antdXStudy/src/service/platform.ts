@@ -27,6 +27,24 @@ export interface ProviderCredential {
   updatedAt: string;
 }
 
+export interface ProviderReasoningCapability {
+  supported: boolean;
+  requestEffortParam?: 'reasoning_effort';
+}
+
+export interface ProviderToolCallingCapability {
+  supported: boolean;
+}
+
+export interface ProviderModelCapabilities {
+  chat: boolean;
+  stream: boolean;
+  toolCalling: ProviderToolCallingCapability;
+  reasoning: ProviderReasoningCapability;
+  vision: boolean;
+  jsonMode: boolean;
+}
+
 export interface ProviderModel {
   id: string;
   providerId: string;
@@ -38,6 +56,7 @@ export interface ProviderModel {
   maxOutput?: number | null;
   defaultParameters?: Record<string, unknown> | null;
   pricing?: Record<string, unknown> | null;
+  capabilities?: ProviderModelCapabilities;
   deprecated: boolean;
   isDefault: boolean;
   enabled: boolean;

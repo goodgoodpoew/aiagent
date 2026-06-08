@@ -6,8 +6,11 @@ import type {
   AdapterType,
   CredentialConfig,
   ModelType,
+  ProviderModelCapabilities,
+  ProviderModelFeatures,
   ResolvedChatProvider,
 } from './model-provider.types';
+import { ProviderCapabilityService } from './provider-capability.service';
 
 interface CachedProvider {
   name: string;
@@ -23,6 +26,7 @@ interface CachedModel {
   displayName: string;
   modelType: ModelType;
   isDefault: boolean;
+  capabilities: ProviderModelCapabilities;
 }
 
 @Injectable()
@@ -35,6 +39,7 @@ export class ModelProviderRegistryService {
   constructor(
     private readonly modelProviderService: ModelProviderService,
     private readonly redis: RedisService,
+    private readonly capabilityService: ProviderCapabilityService,
   ) {}
 
   async listEnabledProviders(): Promise<CachedProvider[]> {
@@ -91,6 +96,13 @@ export class ModelProviderRegistryService {
         displayName: model.displayName,
         modelType: model.modelType as ModelType,
         isDefault: model.isDefault,
+        capabilities: this.capabilityService.resolveModelCapabilities({
+          providerName: provider.name,
+          adapterType: provider.adapterType as AdapterType,
+          modelName: model.name,
+          modelType: model.modelType as ModelType,
+          features: model.features as ProviderModelFeatures,
+        }),
       }));
 
     await this.redis.setJson(cacheKey, models, this.CACHE_TTL);
@@ -131,6 +143,13 @@ export class ModelProviderRegistryService {
     const requestedProvider = params.provider ?? params.platform;
 
     if (requestedProvider === 'custom' && params.customBaseUrl && params.customApiKey) {
+      const capabilities = this.capabilityService.resolveModelCapabilities({
+        providerName: 'custom',
+        adapterType: 'openai-compatible',
+        modelName: params.model || 'custom-model',
+        modelType: 'llm',
+        features: ['chat', 'stream'],
+      });
       return {
         provider: 'custom',
         providerDisplayName: '自定义',
@@ -138,6 +157,9 @@ export class ModelProviderRegistryService {
         baseUrl: params.customBaseUrl.replace(/\/+$/, ''),
         apiKey: params.customApiKey,
         adapterType: 'openai-compatible',
+        capabilities,
+        reasoning: capabilities.reasoning,
+        toolCalling: capabilities.toolCalling,
       };
     }
 
@@ -147,6 +169,18 @@ export class ModelProviderRegistryService {
     if (!provider || !provider.enabled) {
       throw new BadRequestException(`模型供应商 "${providerName}" 不存在或未启用`);
     }
+    const resolvedModel = provider.models.find(
+      (item) => item.modelType === 'llm' && item.name === model,
+    );
+    const capabilities = resolvedModel
+      ? this.capabilityService.resolveModelCapabilities({
+          providerName: provider.name,
+          adapterType: provider.adapterType as AdapterType,
+          modelName: resolvedModel.name,
+          modelType: resolvedModel.modelType as ModelType,
+          features: resolvedModel.features as ProviderModelFeatures,
+        })
+      : undefined;
 
     const credential =
       (params.credentialId
@@ -171,10 +205,9 @@ export class ModelProviderRegistryService {
       baseUrl,
       apiKey,
       adapterType: provider.adapterType as AdapterType,
-      reasoning: {
-        supported: provider.name === 'openai' || provider.name === 'azure-openai',
-        requestEffortParam: 'reasoning_effort',
-      },
+      capabilities,
+      reasoning: capabilities?.reasoning,
+      toolCalling: capabilities?.toolCalling,
     };
   }
 

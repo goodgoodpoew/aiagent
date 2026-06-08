@@ -157,6 +157,7 @@ export class BuiltinToolAdapter {
         name: file.name,
         type: file.type,
         status: 'ready',
+        tokenEstimate: file.tokenEstimate,
       })),
       readResults: [
         ...detail.readable.map((file) => ({

@@ -69,6 +69,41 @@ describe('MessagePartsRenderer', () => {
 
     expect(screen.getByText('请结合附件回答')).toBeInTheDocument();
     expect(screen.getByText('需求说明.pdf')).toBeInTheDocument();
-    expect(screen.getByText('2.0 KB')).toBeInTheDocument();
+    expect(screen.getByText(/已读取 · 2.0 KB/)).toBeInTheDocument();
+  });
+
+  it('渲染用户消息附件读取状态和不可用原因', () => {
+    render(
+      <UserMessageContent
+        message={createAssistantMessage({
+          role: 'user',
+          content: '请结合附件回答',
+          metadata: {
+            attachments: [
+              {
+                fileId: 'file-1',
+                name: '需求说明.pdf',
+                type: 'application/pdf',
+                status: 'ready',
+                tokenEstimate: 128,
+              },
+            ],
+            unavailableAttachments: [
+              {
+                fileId: 'file-2',
+                name: '解析中.pdf',
+                type: 'application/pdf',
+                reason: '文件尚未解析成功，未进入本轮模型上下文',
+              },
+            ],
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText('需求说明.pdf')).toBeInTheDocument();
+    expect(screen.getByText(/已读取 · 约 128 tokens/)).toBeInTheDocument();
+    expect(screen.getByText('解析中.pdf')).toBeInTheDocument();
+    expect(screen.getByText(/未进入上下文 · 文件尚未解析成功/)).toBeInTheDocument();
   });
 });

@@ -26,6 +26,7 @@ export interface FileReadToolResult {
     name: string;
     type: string;
     status: 'ready';
+    tokenEstimate?: number;
   }>;
   readResults: AttachmentReadResult[];
 }

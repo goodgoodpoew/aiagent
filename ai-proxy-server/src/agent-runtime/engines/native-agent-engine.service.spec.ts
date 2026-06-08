@@ -75,6 +75,7 @@ describe('NativeAgentEngineService 文件读取工具接线', () => {
               name: '需求.txt',
               type: 'text/plain',
               status: 'ready',
+              tokenEstimate: 3,
             },
           ],
           readResults: [
