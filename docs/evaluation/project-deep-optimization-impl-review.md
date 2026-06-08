@@ -42,6 +42,47 @@
 - [x] 放行（综合分 ≥ 75 且无 P0）
 - [ ] 需修订后重评
 
+## P0-3 为关键聊天入口补运行时 DTO 校验
+
+### 综合评分
+
+综合评分：**88 / 100**
+评级：**B+，放行**
+一句话评价：**v2 主聊天入口已具备运行时校验，非法 parts、role、附件数量和 toolChoice 会在 DTO 层被拦截。**
+
+### 评分总览
+
+| 维度 | 分数 | 评价 |
+| --- | ---: | --- |
+| 计划符合度 | 90 / 100 | 完成 v2 class DTO、多态 parts 校验、runtime 字段约束、toolChoice 引用检查，并补旧 chat DTO 基础校验。 |
+| 范围守纪 | 88 / 100 | 聚焦入口校验，没有重写 Agent Runtime 或协议渲染。 |
+| 代码质量 | 86 / 100 | DTO 约束集中、命名清晰；自定义 validator 直接服务本步目标。 |
+| 测试覆盖 | 88 / 100 | 新增 11 个 DTO 单测，后端全量 unit 和 build 通过；HTTP e2e 尚未实跑。 |
+| 主流对齐度 | 90 / 100 | 使用 NestJS `ValidationPipe` + class-validator/class-transformer，是当前栈的主流做法。 |
+| 风险闭环 | 84 / 100 | 附件数量默认读取环境变量；仍需后续在真实 HTTP/e2e 中确认响应契约。 |
+
+### 一致点 / 亮点
+
+- `ChatStreamRequestV2` 从编译期 interface 升级为可被 `ValidationPipe` 处理的 class DTO。
+- text/file/image/resource/command parts 分别校验，避免非法结构直接进入 Agent Runtime。
+- `toolChoice` 从 runtime 失败前移到 DTO 层，且必须引用请求启用工具。
+- 旧非流式 `ChatRequestDto` 也补上基础校验，避免留下明显入口短板。
+
+### 偏差 / 不足
+
+- `response.format` 仅保留基本字段，不在本步深挖 JSON schema 结构校验，避免扩大范围。
+- 本步没有把附件数量从 `ConfigService` 注入 DTO，而是读取环境变量默认值；后续若配置需运行时热更新，应抽为专门 pipe。
+- 尚未用真实 HTTP 请求验证 400 响应体，待后续 e2e/集成验证补齐。
+
+### P0 致命项
+
+- 无。
+
+### 结论
+
+- [x] 放行（综合分 ≥ 75 且无 P0）
+- [ ] 需修订后重评
+
 ## P0-2 收紧认证边界，停止默认信任裸 `X-User-Id`
 
 ### 综合评分
