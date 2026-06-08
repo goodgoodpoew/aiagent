@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, Headers, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  Headers,
+  Res,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { SessionService } from './session.service';
 import { SessionEventService } from './session-event.service';
@@ -20,6 +32,7 @@ export class SessionController {
     private readonly sessionEventService: SessionEventService,
     private readonly messageService: MessageService,
     private readonly fileService: FileService,
+    private readonly config: ConfigService,
   ) {}
 
   @Post()
@@ -28,7 +41,7 @@ export class SessionController {
     @Headers('x-user-id') userId: string,
     @Body() dto: CreateSessionDto,
   ) {
-    return this.sessionService.create(resolveUserId(user, userId), dto);
+    return this.sessionService.create(this.resolveEffectiveUserId(user, userId), dto);
   }
 
   @Get()
@@ -37,7 +50,7 @@ export class SessionController {
     @Headers('x-user-id') userId: string,
     @Query() query: QuerySessionDto,
   ) {
-    return this.sessionService.findAll(resolveUserId(user, userId), query);
+    return this.sessionService.findAll(this.resolveEffectiveUserId(user, userId), query);
   }
 
   @Get('events')
@@ -49,7 +62,7 @@ export class SessionController {
     @Query('lastEventId') queryLastEventId: string | undefined,
     @Res() res: Response,
   ) {
-    const effectiveUserId = resolveUserId(user, userId);
+    const effectiveUserId = this.resolveEffectiveUserId(user, userId);
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -66,7 +79,7 @@ export class SessionController {
     @Headers('x-user-id') userId: string,
     @Param('id') id: string,
   ) {
-    return this.sessionService.findOne(id, resolveUserId(user, userId));
+    return this.sessionService.findOne(id, this.resolveEffectiveUserId(user, userId));
   }
 
   @Get(':id/messages')
@@ -77,7 +90,7 @@ export class SessionController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    await this.sessionService.findOne(id, resolveUserId(user, userId));
+    await this.sessionService.findOne(id, this.resolveEffectiveUserId(user, userId));
     return this.messageService.findBySessionId(id, cursor, limit ? Number(limit) : 50);
   }
 
@@ -88,7 +101,7 @@ export class SessionController {
     @Param('id') id: string,
     @Body() dto: UpdateSessionDto,
   ) {
-    return this.sessionService.update(id, resolveUserId(user, userId), dto);
+    return this.sessionService.update(id, this.resolveEffectiveUserId(user, userId), dto);
   }
 
   @Post(':id/files')
@@ -98,7 +111,11 @@ export class SessionController {
     @Param('id') id: string,
     @Body() dto: AttachSessionFilesDto,
   ) {
-    return this.sessionService.attachFilesToSession(resolveUserId(user, userId), id, dto.fileIds);
+    return this.sessionService.attachFilesToSession(
+      this.resolveEffectiveUserId(user, userId),
+      id,
+      dto.fileIds,
+    );
   }
 
   @Get(':id/files')
@@ -109,7 +126,7 @@ export class SessionController {
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: number,
   ) {
-    const effectiveUserId = resolveUserId(user, userId);
+    const effectiveUserId = this.resolveEffectiveUserId(user, userId);
     await this.sessionService.findOne(id, effectiveUserId);
     return this.fileService.findAll(effectiveUserId, {
       sessionId: id,
@@ -124,6 +141,12 @@ export class SessionController {
     @Headers('x-user-id') userId: string,
     @Param('id') id: string,
   ) {
-    return this.sessionService.softDelete(id, resolveUserId(user, userId));
+    return this.sessionService.softDelete(id, this.resolveEffectiveUserId(user, userId));
+  }
+
+  private resolveEffectiveUserId(user: AuthenticatedUser | undefined, headerUserId?: string) {
+    return resolveUserId(user, headerUserId, {
+      allowHeaderUserId: this.config.get<boolean>('auth.allowHeaderUserId', false),
+    });
   }
 }

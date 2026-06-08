@@ -4,6 +4,7 @@ const requestMock = vi.fn();
 vi.mock('@umijs/max', () => ({ request: (...args: unknown[]) => requestMock(...args) }));
 
 import { deleteFile, downloadFile, fetchFiles, fetchSessionFiles, getFileDownloadUrl, uploadFile } from './file';
+import { clearAuthSession, saveAuthSession } from './config';
 
 const BASE_URL = 'http://localhost:3001/api';
 
@@ -15,6 +16,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  clearAuthSession();
 });
 
 describe('file service - request 端点', () => {
@@ -46,6 +48,11 @@ describe('file service - request 端点', () => {
 
 describe('file service - uploadFile 原生 fetch 上传', () => {
   it('上传成功返回解析后的文件信息', async () => {
+    saveAuthSession('token-1', {
+      id: 'user-1',
+      username: 'demo',
+      email: 'demo@example.test',
+    });
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -66,7 +73,8 @@ describe('file service - uploadFile 原生 fetch 上传', () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe(`${BASE_URL}/files/upload`);
     expect(init.method).toBe('POST');
-    expect(init.headers['X-User-Id']).toBeTruthy();
+    expect(init.headers['X-User-Id']).toBe('user-1');
+    expect(init.headers.Authorization).toBe('Bearer token-1');
   });
 
   it('上传失败抛出统一错误', async () => {
@@ -85,6 +93,11 @@ describe('file service - uploadFile 原生 fetch 上传', () => {
 
 describe('file service - downloadFile 原生 fetch 下载', () => {
   it('下载成功时创建临时链接', async () => {
+    saveAuthSession('token-1', {
+      id: 'user-1',
+      username: 'demo',
+      email: 'demo@example.test',
+    });
     const clickMock = vi.fn();
     const revokeMock = vi.fn();
     const createObjectUrlMock = vi.fn().mockReturnValue('blob:download');
@@ -110,7 +123,10 @@ describe('file service - downloadFile 原生 fetch 下载', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE_URL}/files/f1/download`,
       expect.objectContaining({
-        headers: expect.objectContaining({ 'X-User-Id': expect.any(String) }),
+        headers: expect.objectContaining({
+          'X-User-Id': 'user-1',
+          Authorization: 'Bearer token-1',
+        }),
       }),
     );
     expect(clickMock).toHaveBeenCalled();

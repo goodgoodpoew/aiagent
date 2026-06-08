@@ -1,5 +1,4 @@
 export const DEFAULT_API_BASE_URL = 'http://localhost:3001/api';
-export const DEFAULT_USER_ID = '9a74c501-9d60-441b-b1ba-7b3eb469dce0';
 export const AUTH_TOKEN_STORAGE_KEY = 'aiagent.auth.token';
 export const AUTH_USER_STORAGE_KEY = 'aiagent.auth.user';
 
@@ -71,13 +70,14 @@ export function hasAuthSession() {
 }
 
 export function getUserId() {
-  return getStoredAuthUser()?.id || readEnvValue('UMI_APP_USER_ID') || DEFAULT_USER_ID;
+  return getStoredAuthUser()?.id || readEnvValue('UMI_APP_USER_ID');
 }
 
 export function buildAuthHeaders(): Record<string, string> {
   const token = getAuthToken();
+  const userId = getUserId();
   return {
-    'X-User-Id': getUserId(),
+    ...(userId ? { 'X-User-Id': userId } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }

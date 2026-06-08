@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { AppException } from '../common/errors/app.exception';
@@ -11,6 +12,7 @@ import { IS_PUBLIC_KEY } from './public.decorator';
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly authService: AuthService,
+    private readonly config: ConfigService,
     private readonly reflector: Reflector,
   ) {}
 
@@ -27,7 +29,13 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request & { user?: AuthenticatedUser }>();
     const token = this.extractBearerToken(request);
     if (!token) {
-      return true;
+      if (
+        this.config.get<boolean>('auth.allowHeaderUserId', false) &&
+        request.header('x-user-id')
+      ) {
+        return true;
+      }
+      throw new AppException({ code: ErrorCode.UNAUTHORIZED, status: HttpStatus.UNAUTHORIZED });
     }
 
     const user = await this.authService.verifyToken(token);

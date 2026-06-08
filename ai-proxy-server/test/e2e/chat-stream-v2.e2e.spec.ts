@@ -135,6 +135,7 @@ describe('POST /api/ai/chat/stream/v2 e2e', () => {
 
     const response = await request(context.app.getHttpServer())
       .post('/api/ai/chat/stream/v2')
+      .set('x-user-id', 'user_e2e')
       .send(createStreamRequest('req_failed'))
       .buffer(true)
       .parse(parseSseResponse);
@@ -166,6 +167,7 @@ describe('POST /api/ai/chat/stream/v2 e2e', () => {
 
     const response = await request(context.app.getHttpServer())
       .post('/api/ai/chat/stream/v2')
+      .set('x-user-id', 'user_e2e')
       .send(createStreamRequest('req_interrupted'))
       .buffer(true)
       .parse(parseSseResponse);
@@ -180,5 +182,28 @@ describe('POST /api/ai/chat/stream/v2 e2e', () => {
       sequence: 1,
       type: 'stream.started',
     });
+  });
+
+  it('rejects requests without token or enabled header fallback identity', async () => {
+    const previous = process.env.AUTH_ALLOW_HEADER_USER_ID;
+    process.env.AUTH_ALLOW_HEADER_USER_ID = 'false';
+    const strictContext = await createIntegrationApp({
+      overrides: [{ provide: AGENT_ENGINE, useValue: fakeEngine }],
+    });
+
+    try {
+      const response = await request(strictContext.app.getHttpServer())
+        .post('/api/ai/chat/stream/v2')
+        .send(createStreamRequest('req_unauthorized'));
+
+      expect(response.status).toBe(401);
+    } finally {
+      await closeIntegrationApp(strictContext);
+      if (previous === undefined) {
+        delete process.env.AUTH_ALLOW_HEADER_USER_ID;
+      } else {
+        process.env.AUTH_ALLOW_HEADER_USER_ID = previous;
+      }
+    }
   });
 });

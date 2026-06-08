@@ -8,8 +8,8 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import { useEffect, useMemo, useState } from 'react';
-import { getCurrentStoredUser, logout } from '@/service/auth';
-import { hasAuthSession } from '@/service/config';
+import { fetchCurrentUser, getCurrentStoredUser, logout } from '@/service/auth';
+import { getAuthToken, hasAuthSession } from '@/service/config';
 import './index.css';
 
 const { Sider, Content } = Layout;
@@ -38,6 +38,17 @@ export default function MainLayout() {
       history.replace('/login');
       return;
     }
+
+    if (getAuthToken()) {
+      fetchCurrentUser()
+        .then((currentUser) => setUser(currentUser))
+        .catch(() => {
+          logout();
+          history.replace('/login');
+        });
+      return;
+    }
+
     setUser(getCurrentStoredUser());
   }, [isLoginPage, pathname]);
 

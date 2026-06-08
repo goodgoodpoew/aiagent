@@ -11,6 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { ConfigService } from '@nestjs/config';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { SkipResponseEnvelope } from '../common/response/skip-response-envelope.decorator';
@@ -28,6 +29,7 @@ export class AiProxyController {
   constructor(
     private readonly aiProxyService: AiProxyService,
     private readonly streamOrchestrator: StreamOrchestratorService,
+    private readonly config: ConfigService,
   ) {}
 
   @Post('chat')
@@ -49,7 +51,13 @@ export class AiProxyController {
   ) {
     // v2 controller 只做 HTTP/SSE 边界接入：接收前端 POST body 和 Express Response。
     // 会话创建、上游请求、provider chunk 转换、事件写出都集中在 StreamOrchestratorService。
-    return this.streamOrchestrator.streamChat(dto, resolveUserId(user, userId), res);
+    return this.streamOrchestrator.streamChat(
+      dto,
+      resolveUserId(user, userId, {
+        allowHeaderUserId: this.config.get<boolean>('auth.allowHeaderUserId', false),
+      }),
+      res,
+    );
   }
 
   @Get('health')

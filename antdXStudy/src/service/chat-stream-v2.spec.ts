@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { STREAM_PROTOCOL_V2, type StreamEventEnvelope } from './stream-protocol';
 import { parseSseEvent, sendChatStreamV2 } from './chat-stream-v2';
+import { clearAuthSession, saveAuthSession } from './config';
 
 function streamFromChunks(chunks: string[]) {
   const encoder = new TextEncoder();
@@ -29,6 +30,7 @@ function createEvent(overrides?: Partial<StreamEventEnvelope>): StreamEventEnvel
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  clearAuthSession();
 });
 
 describe('parseSseEvent', () => {
@@ -46,6 +48,11 @@ describe('parseSseEvent', () => {
 
 describe('sendChatStreamV2', () => {
   it('逐段解析 SSE，并忽略 DONE 与非 v2 协议事件', async () => {
+    saveAuthSession('token-1', {
+      id: 'user-1',
+      username: 'demo',
+      email: 'demo@example.test',
+    });
     const v2Event = createEvent();
     const legacyEvent = { ...v2Event, protocol: 'legacy.stream.v1' };
     const onEvent = vi.fn();
@@ -77,7 +84,8 @@ describe('sendChatStreamV2', () => {
         method: 'POST',
         headers: expect.objectContaining({
           'Content-Type': 'application/json',
-          'X-User-Id': expect.any(String),
+          'X-User-Id': 'user-1',
+          Authorization: 'Bearer token-1',
         }),
       }),
     );

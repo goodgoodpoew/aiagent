@@ -112,6 +112,7 @@ jobs:
           GEMINI_API_KEY: test-only
           CODEX_API_KEY: test-only
           MODEL_CREDENTIAL_SECRET: test-model-credential-secret
+          AUTH_ALLOW_HEADER_USER_ID: "true"
         run: pnpm prisma migrate deploy
 
       - name: Backend integration tests
@@ -130,6 +131,7 @@ jobs:
           GEMINI_API_KEY: test-only
           CODEX_API_KEY: test-only
           MODEL_CREDENTIAL_SECRET: test-model-credential-secret
+          AUTH_ALLOW_HEADER_USER_ID: "true"
         run: pnpm test:integration
 
       - name: Frontend build

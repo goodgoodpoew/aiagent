@@ -15,6 +15,7 @@ import {
   StreamableFile,
   Query,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { FileService } from './file.service';
@@ -30,7 +31,10 @@ import type { AuthenticatedUser } from '../auth/auth.types';
 export class FileController {
   private readonly logger = new Logger(FileController.name);
 
-  constructor(private readonly fileService: FileService) {}
+  constructor(
+    private readonly fileService: FileService,
+    private readonly config: ConfigService,
+  ) {}
 
   /**
    * 查询当前用户文件列表
@@ -41,7 +45,7 @@ export class FileController {
     @Headers('x-user-id') userId: string,
     @Query() query: QueryFileDto,
   ) {
-    return this.fileService.findAll(resolveUserId(user, userId), query);
+    return this.fileService.findAll(this.resolveEffectiveUserId(user, userId), query);
   }
 
   /**
@@ -63,7 +67,7 @@ export class FileController {
 
     return this.fileService.upload(
       file,
-      resolveUserId(user, userId),
+      this.resolveEffectiveUserId(user, userId),
       purpose || 'chat',
       displayName,
       fileNameHeader,
@@ -79,7 +83,7 @@ export class FileController {
     @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
   ) {
-    return this.fileService.findById(id, resolveUserId(user, userId));
+    return this.fileService.findById(id, this.resolveEffectiveUserId(user, userId));
   }
 
   /**
@@ -91,7 +95,7 @@ export class FileController {
     @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
   ) {
-    return this.fileService.getContent(id, resolveUserId(user, userId));
+    return this.fileService.getContent(id, this.resolveEffectiveUserId(user, userId));
   }
 
   /**
@@ -107,7 +111,7 @@ export class FileController {
   ) {
     const { stream, name, mimeType } = await this.fileService.downloadStream(
       id,
-      resolveUserId(user, userId),
+      this.resolveEffectiveUserId(user, userId),
     );
 
     res.setHeader('Content-Type', mimeType);
@@ -126,6 +130,12 @@ export class FileController {
     @CurrentUser() user: AuthenticatedUser | undefined,
     @Headers('x-user-id') userId: string,
   ) {
-    await this.fileService.softDelete(id, resolveUserId(user, userId));
+    await this.fileService.softDelete(id, this.resolveEffectiveUserId(user, userId));
+  }
+
+  private resolveEffectiveUserId(user: AuthenticatedUser | undefined, headerUserId?: string) {
+    return resolveUserId(user, headerUserId, {
+      allowHeaderUserId: this.config.get<boolean>('auth.allowHeaderUserId', false),
+    });
   }
 }

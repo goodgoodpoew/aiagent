@@ -8,6 +8,7 @@ export default () => ({
   auth: {
     tokenSecret: process.env.AUTH_TOKEN_SECRET || 'dev-auth-token-secret',
     tokenTtlSeconds: parseInt(process.env.AUTH_TOKEN_TTL_SECONDS ?? String(7 * 24 * 60 * 60), 10),
+    allowHeaderUserId: process.env.AUTH_ALLOW_HEADER_USER_ID === 'true',
   },
 
   redis: {
