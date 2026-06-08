@@ -4,8 +4,10 @@ dist
 .env.local
 .umi
 src/.umi
+src/.umi-production
 .mfsu
 .cache
 *.log
 .DS_Store
 .pnpm-store
+/.pnpm-store
