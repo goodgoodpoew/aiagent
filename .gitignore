@@ -7,6 +7,12 @@ src/.umi
 src/.umi-production
 .mfsu
 .cache
+coverage
+playwright-report
+playwright-gray-report
+test-results
+uploads
+uploads-test
 *.log
 .DS_Store
 .pnpm-store

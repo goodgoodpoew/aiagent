@@ -2,6 +2,11 @@ node_modules
 /.env.local
 /.umi
 /src/.umi
+/src/.umi-production
 /dist
 /.mfsu
 /.cache
+/coverage
+/playwright-report
+/playwright-gray-report
+/test-results
