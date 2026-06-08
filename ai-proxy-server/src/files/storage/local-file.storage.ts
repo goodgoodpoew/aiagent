@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Readable } from 'stream';
@@ -12,15 +13,18 @@ export class LocalFileStorage implements FileStorage {
   private readonly logger = new Logger(LocalFileStorage.name);
   private readonly uploadDir: string;
 
-  constructor() {
-    this.uploadDir = path.resolve(process.cwd(), 'uploads');
+  constructor(private readonly config: ConfigService) {
+    this.uploadDir = path.resolve(
+      process.cwd(),
+      this.config.get<string>('files.uploadRoot', 'uploads'),
+    );
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }
   }
 
   async save(input: SaveFileInput): Promise<StoredFile> {
-    const filePath = path.join(this.uploadDir, input.storageKey);
+    const filePath = this.resolveStoragePath(input.storageKey);
     const parentDir = path.dirname(filePath);
     await fs.promises.mkdir(parentDir, { recursive: true });
     await fs.promises.writeFile(filePath, input.buffer);
@@ -33,7 +37,7 @@ export class LocalFileStorage implements FileStorage {
   }
 
   read(storageKey: string): Promise<Readable> {
-    const filePath = path.join(this.uploadDir, storageKey);
+    const filePath = this.resolveStoragePath(storageKey);
     if (!fs.existsSync(filePath)) {
       throw new Error(`文件不存在: ${storageKey}`);
     }
@@ -41,10 +45,19 @@ export class LocalFileStorage implements FileStorage {
   }
 
   async remove(storageKey: string): Promise<void> {
-    const filePath = path.join(this.uploadDir, storageKey);
+    const filePath = this.resolveStoragePath(storageKey);
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
       this.logger.log(`文件已删除: ${storageKey}`);
     }
+  }
+
+  private resolveStoragePath(storageKey: string) {
+    const filePath = path.resolve(this.uploadDir, storageKey);
+    const relative = path.relative(this.uploadDir, filePath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error(`非法文件路径: ${storageKey}`);
+    }
+    return filePath;
   }
 }

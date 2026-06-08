@@ -49,5 +49,7 @@ export default () => ({
     maxFileSize: parseInt(process.env.FILE_MAX_SIZE ?? String(10 * 1024 * 1024), 10),
     /** 单条消息最大附件数 */
     maxAttachmentsPerMessage: parseInt(process.env.FILE_MAX_ATTACHMENTS_PER_MESSAGE ?? '5', 10),
+    /** 文件存储根目录 */
+    uploadRoot: process.env.UPLOAD_ROOT || 'uploads',
   },
 });
