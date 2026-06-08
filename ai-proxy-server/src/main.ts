@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -13,13 +14,14 @@ async function bootstrap() {
     }),
   );
 
+  const config = app.get(ConfigService);
+  const corsOrigins = config.get<string[]>('cors.origins', []);
+  if (process.env.NODE_ENV === 'production' && corsOrigins.includes('*')) {
+    throw new Error('生产环境禁止在 CORS credentials=true 时使用 wildcard origin');
+  }
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://localhost:8001',
-      'http://localhost:8000',
-    ],
+    origin: corsOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: [
       'Content-Type',
@@ -33,7 +35,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT ?? 3001;
+  const port = config.get<number>('port', 3001);
   await app.listen(port);
   console.log(`AI Proxy Server running on http://localhost:${port}`);
 }

@@ -10,7 +10,6 @@ import { SessionModule } from './session/session.module';
 import { ModelProviderModule } from './model-provider/model-provider.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { FileModule } from './files/file.module';
-import { CorsGuard } from './common/guard/cors.guard';
 import { RedisModule } from './redis/redis.module';
 import { QueueModule } from './queue/queue.module';
 import { ThrottleModule } from './throttle/throttle.module';
@@ -65,7 +64,6 @@ import { AuthGuard } from './auth/auth.guard';
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
-    { provide: APP_GUARD, useClass: CorsGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],

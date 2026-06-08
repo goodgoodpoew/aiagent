@@ -11,6 +11,21 @@ export default () => ({
     allowHeaderUserId: process.env.AUTH_ALLOW_HEADER_USER_ID === 'true',
   },
 
+  cors: {
+    origins: (
+      process.env.CORS_ORIGINS ||
+      [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost:8001',
+        'http://localhost:8000',
+      ].join(',')
+    )
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  },
+
   redis: {
     host: process.env.REDIS_HOST ?? 'localhost',
     port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
