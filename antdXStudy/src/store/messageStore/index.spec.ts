@@ -315,6 +315,51 @@ describe('applyStreamEvent 流式事件应用', () => {
     expect(state.entities.a1?.content).toBe('');
   });
 
+  it('reasoning part.completed 将思考过程收口为 done', () => {
+    let state = messageReducer(
+      initialState(),
+      appendMessage({
+        message: localMessage({
+          id: 'a1',
+          role: 'assistant',
+          parts: [
+            {
+              id: 'reason-1',
+              type: 'reasoning',
+              visibility: 'summary',
+              status: 'streaming',
+              summary: '思考中',
+            },
+            { id: 'text-1', type: 'text', text: '正式回答', status: 'streaming' },
+          ],
+        }),
+        status: 'streaming',
+      }),
+    );
+    state = messageReducer(
+      state,
+      applyStreamEvent(
+        createEvent({
+          type: 'message.part.completed',
+          messageId: 'a1',
+          data: {
+            partId: 'reason-1',
+            type: 'reasoning',
+            status: 'done',
+            summary: '思考完成',
+          },
+        }),
+      ),
+    );
+
+    const reasoningPart = state.entities.a1?.parts?.find((item) => item.id === 'reason-1');
+    const textPart = state.entities.a1?.parts?.find((item) => item.id === 'text-1');
+    expect(reasoningPart?.type === 'reasoning' && reasoningPart.summary).toBe('思考完成');
+    expect(reasoningPart?.type === 'reasoning' && reasoningPart.status).toBe('done');
+    expect(textPart?.type === 'text' && textPart.status).toBe('streaming');
+    expect(state.statusByMessageId.a1).toBe('streaming');
+  });
+
   it('tool_call delta 累积 argumentsText', () => {
     const state = messageReducer(
       initialState(),

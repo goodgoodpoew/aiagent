@@ -2,10 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { MessageService } from '../message/message.service';
 import { SessionCacheService, CachedMessage } from '../session/session-cache.service';
-import { toLlmMessages, MessageWithMetadata } from '../message/message-filter.util';
+import { MessageWithMetadata } from '../message/message-filter.util';
 import { Prisma } from '@prisma/client';
 import { SessionService } from '../session/session.service';
 import { MESSAGE_PROTOCOL_V2 } from '../message/dto/create-message.dto';
+import { ContextBuilderService } from './context-builder.service';
 import type { MessagePart } from '@/streaming/protocol/message-part.types';
 import type {
   AttachmentReadResult,
@@ -43,6 +44,7 @@ export class ChatContextService {
     private readonly messageService: MessageService,
     private readonly sessionCache: SessionCacheService,
     private readonly sessionService: SessionService,
+    private readonly contextBuilder: ContextBuilderService,
   ) { }
 
   private toCachedMessage(m: {
@@ -218,12 +220,12 @@ export class ChatContextService {
       }
     }
 
-    const messages = toLlmMessages(rawMessages);
+    const context = this.contextBuilder.build({ rawMessages });
 
     this.logger.debug(
-      `会话 ${sessionId} 携带 ${messages.length} 条历史上送 LLM（原始 ${rawMessages.length} 条）`,
+      `会话 ${sessionId} 上下文装配: 原始=${context.debug.rawMessageCount}, 候选=${context.debug.candidateMessageCount}, 选入=${context.debug.selectedMessageCount}, token=${context.debug.estimatedPromptTokens}/${context.debug.maxPromptTokens}, 裁剪=${context.debug.truncated ? '是' : '否'}`,
     );
 
-    return { userMessageId, messages, attachmentReadResults };
+    return { userMessageId, messages: context.messages, attachmentReadResults };
   }
 }

@@ -32,7 +32,6 @@ import {
   updateDraft,
 } from '@/store/contentStore';
 import { uploadFile } from '@/service/file';
-import { getMessageTextProjection } from '@/store/adapters/messageAdapter';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   selectBubbleItems,
@@ -44,7 +43,7 @@ import {
   selectStreamingState,
 } from '@/store/selectors';
 import type { ChatFile, ChatMessage } from '@/store/types';
-import MessagePartsRenderer from './MessagePartsRenderer';
+import { AssistantMessageContent, UserMessageContent } from './message-display';
 import './BaseLayout.css';
 
 function formatFileSize(size: number) {
@@ -95,32 +94,11 @@ const BaseLayout: FC = () => {
     () => ({
       assistant: {
         placement: 'start' as const,
-        contentRender: (message: ChatMessage) => <MessagePartsRenderer message={message} />,
+        contentRender: (message: ChatMessage) => <AssistantMessageContent message={message} />,
       },
       user: {
         placement: 'end' as const,
-        contentRender: (message: ChatMessage) => {
-          const meta = message.metadata as { attachments?: Array<{ fileId: string; name: string; type: string; size: number }> } | null | undefined;
-          const attachments = meta?.attachments;
-          const hasAttachments = attachments && attachments.length > 0;
-
-          return (
-            <div>
-              {hasAttachments && (
-                <div style={{ marginBottom: 4 }}>
-                  {attachments!.map(
-                    (att) => (
-                      <Tag key={att.fileId} style={{ marginBottom: 4 }}>
-                        {att.name}
-                      </Tag>
-                    ),
-                  )}
-                </div>
-              )}
-              <div>{getMessageTextProjection(message)}</div>
-            </div>
-          );
-        },
+        contentRender: (message: ChatMessage) => <UserMessageContent message={message} />,
       },
     }),
     [],

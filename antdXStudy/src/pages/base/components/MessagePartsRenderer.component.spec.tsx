@@ -1,15 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ChatMessage } from '@/store/types';
+import { UserMessageContent } from './message-display';
 import MessagePartsRenderer from './MessagePartsRenderer';
 
 vi.mock('@ant-design/x-markdown', () => ({
   default: ({ children }: { children: string }) => <div data-testid="markdown">{children}</div>,
 }));
 
-vi.mock('./AnswerProcessPanel', () => ({
-  default: ({ streaming }: { streaming: boolean }) => (
-    <div data-testid="answer-process">{streaming ? '处理中' : '已完成'}</div>
+vi.mock('./message-display/MessageProcessPanel', () => ({
+  default: () => (
+    <div data-testid="answer-process">过程面板</div>
   ),
 }));
 
@@ -32,7 +33,7 @@ describe('MessagePartsRenderer', () => {
     expect(screen.getByTestId('markdown')).toHaveTextContent('旧消息正文');
   });
 
-  it('渲染 v2 text parts、附件和处理过程状态', () => {
+  it('渲染 v2 text parts、附件和处理过程面板', () => {
     render(
       <MessagePartsRenderer
         message={createAssistantMessage({
@@ -46,8 +47,28 @@ describe('MessagePartsRenderer', () => {
       />,
     );
 
-    expect(screen.getByTestId('answer-process')).toHaveTextContent('处理中');
+    expect(screen.getByTestId('answer-process')).toHaveTextContent('过程面板');
     expect(screen.getByText('测试文件.md')).toBeInTheDocument();
     expect(screen.getByText('结构化回答')).toBeInTheDocument();
+  });
+
+  it('渲染用户消息附件 metadata', () => {
+    render(
+      <UserMessageContent
+        message={createAssistantMessage({
+          role: 'user',
+          content: '请结合附件回答',
+          metadata: {
+            attachments: [
+              { fileId: 'file-1', name: '需求说明.pdf', type: 'application/pdf', size: 2048 },
+            ],
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText('请结合附件回答')).toBeInTheDocument();
+    expect(screen.getByText('需求说明.pdf')).toBeInTheDocument();
+    expect(screen.getByText('2.0 KB')).toBeInTheDocument();
   });
 });

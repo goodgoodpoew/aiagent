@@ -120,8 +120,9 @@ describe('BaseLayout 聊天页视图', () => {
     renderWith(store);
 
     expect(store.getState().messages.streamingMessageId).toBe('a1');
-    // 思考开关在流式中禁用
-    const reasoningSwitch = screen.getByRole('switch');
-    expect(reasoningSwitch).toBeDisabled();
+    // 流式输出中，输入区开关不可操作。
+    const switches = screen.getAllByRole('switch');
+    expect(switches.length).toBeGreaterThan(0);
+    switches.forEach((item) => expect(item).toBeDisabled());
   });
 });

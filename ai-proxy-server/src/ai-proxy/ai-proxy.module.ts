@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { AiProxyController } from './ai-proxy.controller';
 import { AiProxyService } from './ai-proxy.service';
 import { ChatContextService } from './chat-context.service';
+import { ContextBuilderService } from './context-builder.service';
 import { StreamCompletionService } from './stream-completion.service';
 import { SessionTitleQueueService } from './session-title-queue.service';
 import { TokenUsageEstimatorService } from './token-usage-estimator.service';
@@ -49,6 +50,7 @@ import { TOOL_GATEWAY } from '../agent-runtime/ports/tool-gateway.port';
   providers: [
     AiProxyService,
     ChatContextService,
+    ContextBuilderService,
     StreamCompletionService,
     OpenAiCompatibleStreamAdapter,
     StreamMessageBuilderService,

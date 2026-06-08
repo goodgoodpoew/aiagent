@@ -25,7 +25,6 @@ import type {
 
 interface AnswerProcessPanelProps {
   parts: MessagePart[];
-  streaming?: boolean;
 }
 
 interface ProcessItem {
@@ -51,6 +50,12 @@ function stringifyPreview(value: unknown) {
 function compactText(text: string | undefined, maxLength = 900) {
   if (!text) return '';
   return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+}
+
+function buildShortPreview(text: string, maxLength = 200) {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
 }
 
 function mapPartStatus(status: 'streaming' | 'done' | 'failed'): ProcessTraceStatus {
@@ -129,13 +134,19 @@ function buildFileReadItem(part: FileReadMessagePart): ProcessItem {
 function buildReasoningItem(part: Extract<MessagePart, { type: 'reasoning' }>): ProcessItem | undefined {
   if (part.visibility === 'hidden' && part.status === 'done') return undefined;
   const visibleText = part.visibility === 'full' ? part.text || part.summary : part.summary;
+  const summary = visibleText
+    ? buildShortPreview(visibleText)
+    : part.status === 'streaming'
+      ? '正在整理思路...'
+      : '已完成思考';
+  const showDetail = Boolean(visibleText && summary !== visibleText);
 
   return {
     id: part.id,
     title: part.status === 'streaming' ? '组织回答' : '思考摘要',
     status: mapPartStatus(part.status),
-    summary: visibleText || (part.status === 'streaming' ? '正在整理思路...' : '已完成思考'),
-    detail: visibleText ? <XMarkdown>{visibleText}</XMarkdown> : undefined,
+    summary,
+    detail: showDetail ? <XMarkdown>{visibleText}</XMarkdown> : undefined,
     icon: <BulbOutlined />,
   };
 }
@@ -280,12 +291,21 @@ function summarize(items: ProcessItem[]) {
   return `${items.length} 个步骤，${sourceCount} 个来源，${toolCount} 个工具`;
 }
 
-const AnswerProcessPanel: FC<AnswerProcessPanelProps> = ({ parts, streaming }) => {
+function resolvePanelStatus(items: ProcessItem[]): ProcessTraceStatus {
+  if (items.some((item) => item.status === 'running' || item.status === 'pending')) return 'running';
+  if (items.some((item) => item.status === 'failed')) return 'failed';
+  if (items.some((item) => item.status === 'skipped')) return 'skipped';
+  return 'done';
+}
+
+const AnswerProcessPanel: FC<AnswerProcessPanelProps> = ({ parts }) => {
   const items = buildProcessItems(parts);
   if (!items.length) return null;
 
-  const hasProblem = items.some((item) => item.status === 'failed' || item.status === 'skipped');
-  const activeKey = streaming || hasProblem ? ['process'] : undefined;
+  const panelStatus = resolvePanelStatus(items);
+  const activeKey = panelStatus === 'running' || panelStatus === 'failed' || panelStatus === 'skipped'
+    ? ['process']
+    : undefined;
   const sourceRefs = items
     .flatMap((item) => item.refs ?? [])
     .filter((ref) => ref.type !== 'tool' && (ref.title || ref.uri || ref.id));
@@ -300,7 +320,7 @@ const AnswerProcessPanel: FC<AnswerProcessPanelProps> = ({ parts, streaming }) =
           label: (
             <Space size={8} wrap>
               <Typography.Text strong>回答过程</Typography.Text>
-              {statusTag(streaming ? 'running' : hasProblem ? 'failed' : 'done')}
+              {statusTag(panelStatus)}
               <Typography.Text type="secondary">{summarize(items)}</Typography.Text>
             </Space>
           ),
@@ -325,18 +345,18 @@ const AnswerProcessPanel: FC<AnswerProcessPanelProps> = ({ parts, streaming }) =
                     {item.summary ? (
                       <Typography.Text type="secondary" style={{ fontSize: 13 }}>
                         {item.summary}
+                        {item.detail ? (
+                          <Collapse
+                            size="small"
+                            ghost
+                            items={[{
+                              key: `${item.id}:detail`,
+                              label: <Typography.Text type="secondary">查看详情</Typography.Text>,
+                              children: item.detail,
+                            }]}
+                          />
+                        ) : null}
                       </Typography.Text>
-                    ) : null}
-                    {item.detail ? (
-                      <Collapse
-                        size="small"
-                        ghost
-                        items={[{
-                          key: `${item.id}:detail`,
-                          label: <Typography.Text type="secondary">查看详情</Typography.Text>,
-                          children: item.detail,
-                        }]}
-                      />
                     ) : null}
                   </Space>
                 </div>

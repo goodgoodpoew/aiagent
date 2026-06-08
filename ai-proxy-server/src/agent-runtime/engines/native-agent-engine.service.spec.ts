@@ -1,23 +1,28 @@
 import { NativeAgentEngineService } from './native-agent-engine.service';
+import { TokenUsageEstimatorService } from '@/ai-proxy/token-usage-estimator.service';
+import { StreamMessageBuilderService } from '@/streaming/services/stream-message-builder.service';
 import { READ_ATTACHED_FILES_TOOL_NAME } from '@/tools/file-read-tool.types';
 import { LOCATION_ACQUISITION_TOOL_NAME } from '@/tools/location-acquisition.types';
-import type { AgentRunContext, AgentRunState, AgentRuntimeInput } from '../agent-runtime.types';
+import type { AgentRunContext, AgentRunState, AgentRuntimeInput, AgentRuntimeSseEvent } from '../agent-runtime.types';
 import type { ToolDefinition } from '@/tools/dto/tool-definition.dto';
 
 describe('NativeAgentEngineService 文件读取工具接线', () => {
   function createService(toolGateway: {
     findInternalTool: jest.Mock;
     execute: jest.Mock;
+  }, overrides?: {
+    conversation?: { markRequestComplete: jest.Mock };
+    messageService?: { completeAssistantMessageV2: jest.Mock };
   }) {
     return new NativeAgentEngineService(
       {} as never,
+      (overrides?.conversation ?? { markRequestComplete: jest.fn() }) as never,
+      (overrides?.messageService ?? { completeAssistantMessageV2: jest.fn() }) as never,
       {} as never,
       {} as never,
-      {} as never,
-      {} as never,
-      {} as never,
+      new StreamMessageBuilderService(),
       toolGateway as never,
-      {} as never,
+      new TokenUsageEstimatorService(),
       {} as never,
     );
   }
@@ -193,5 +198,79 @@ describe('NativeAgentEngineService 文件读取工具接线', () => {
     expect(args).toEqual({
       location: '上海市黄浦区',
     });
+  });
+
+  it('收尾时为已开始的 reasoning 发送完成事件，并写入最终消息快照', async () => {
+    const conversation = { markRequestComplete: jest.fn().mockResolvedValue(undefined) };
+    const messageService = { completeAssistantMessageV2: jest.fn().mockResolvedValue(undefined) };
+    const service = createService({
+      findInternalTool: jest.fn(),
+      execute: jest.fn(),
+    }, {
+      conversation,
+      messageService,
+    });
+    const ctx: AgentRunContext = {
+      requestId: 'req_1',
+      traceId: 'trace_1',
+      userId: 'user_1',
+      sessionId: 'session_1',
+      assistantMessageId: 'assistant_1',
+      platform: 'openai',
+      model: 'gpt-test',
+    };
+    const state = {
+      effectiveUserId: 'user_1',
+      failureStage: 'provider_stream',
+      promptMessagesForUsage: [],
+      completedFileReads: [],
+      finalContent: '正式回答',
+      finalReasoningText: '',
+      finalReasoningSummary: '思考摘要',
+      encryptedReasoningContent: '',
+      textPartStarted: true,
+      reasoningPartStarted: true,
+      reasoningVisibility: 'summary',
+      completedToolCalls: [],
+      completedToolResults: [],
+      finishReason: 'stop',
+    } as unknown as AgentRunState;
+
+    const events = await (service as never as {
+      finalizeMessage: (ctx: AgentRunContext, state: AgentRunState) => Promise<AgentRuntimeSseEvent[]>;
+    }).finalizeMessage(ctx, state);
+
+    const reasoningCompleted = events.find((event) => (
+      event.kind === 'sse'
+      && event.type === 'message.part.completed'
+      && (event.data as { type?: string }).type === 'reasoning'
+    ));
+    const messageCompleted = events.find((event) => event.kind === 'sse' && event.type === 'message.completed');
+    const completedMessage = (messageCompleted?.data as {
+      message?: { parts?: Array<{ type: string; status?: string; summary?: string }> };
+    } | undefined)?.message;
+
+    expect(reasoningCompleted?.data).toEqual(expect.objectContaining({
+      partId: 'assistant_1:reasoning:0',
+      type: 'reasoning',
+      status: 'done',
+      summary: '思考摘要',
+    }));
+    expect(completedMessage?.parts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'assistant_1:reasoning:0',
+        type: 'reasoning',
+        status: 'done',
+        summary: '思考摘要',
+      }),
+    ]));
+    expect(messageService.completeAssistantMessageV2).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'assistant_1',
+      content: '正式回答',
+      parts: expect.arrayContaining([
+        expect.objectContaining({ type: 'reasoning', status: 'done' }),
+      ]),
+    }));
+    expect(conversation.markRequestComplete).toHaveBeenCalledWith('user_1', 'req_1');
   });
 });
